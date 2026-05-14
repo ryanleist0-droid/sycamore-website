@@ -59,7 +59,7 @@ sycamore-website/
 ├── src/
 │   ├── app/
 │   │   ├── [locale]/
-│   │   │   ├── (marketing)/        # home, about, services, contact
+│   │   │   ├── page.tsx            # home (also: about/, services/, contact/)
 │   │   │   ├── careers/            # index + [slug]
 │   │   │   └── layout.tsx          # locale layout — chrome + Organization JSON-LD
 │   │   ├── api/contact/route.ts    # D5 wires the Turnstile-validated POST
