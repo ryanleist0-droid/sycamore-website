@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "services": "Services",
+    "about": "About",
+    "careers": "Careers",
+    "contact": "Contact",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "hiring": "We're hiring →"
+  },
+  "footer": {
+    "tagline": "Technology focused, community driven.",
+    "company": "Company",
+    "resources": "Resources",
+    "languages": "Languages",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "copyright": "© {year} Sycamore Logistics. All rights reserved."
+  },
+  "locale": {
+    "switchAria": "Switch language"
+  },
+  "home": {
+    "title": "Sycamore Logistics",
+    "tagline": "Technology focused, community driven.",
+    "subtitle": "Amazon Delivery Service Partner. Real fleet, real team, real stations.",
+    "ctaPrimary": "See open roles",
+    "ctaSecondary": "Contact us",
+    "scaffoldNotice": "D1 scaffold — content lands in D2 (English) and D4 (Spanish)."
+  },
+  "common": {
+    "tbd": "TBD",
+    "comingSoon": "Coming soon"
+  }
+}

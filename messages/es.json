@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "services": "Servicios",
+    "about": "Nosotros",
+    "careers": "Trabaja con nosotros",
+    "contact": "Contacto",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "hiring": "Estamos contratando →"
+  },
+  "footer": {
+    "tagline": "Tecnología enfocada, comunidad impulsada.",
+    "company": "Empresa",
+    "resources": "Recursos",
+    "languages": "Idiomas",
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "copyright": "© {year} Sycamore Logistics. Todos los derechos reservados."
+  },
+  "locale": {
+    "switchAria": "Cambiar idioma"
+  },
+  "home": {
+    "title": "Sycamore Logistics",
+    "tagline": "Tecnología enfocada, comunidad impulsada.",
+    "subtitle": "Socio de Servicio de Entrega de Amazon. Flota real, equipo real, estaciones reales.",
+    "ctaPrimary": "Ver vacantes",
+    "ctaSecondary": "Contáctanos",
+    "scaffoldNotice": "Andamiaje D1 — el contenido llega en D2 (inglés) y D4 (español)."
+  },
+  "common": {
+    "tbd": "Por definir",
+    "comingSoon": "Próximamente"
+  }
+}

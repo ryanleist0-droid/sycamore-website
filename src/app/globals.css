@@ -1,0 +1,125 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ── Sycamore Marketing tokens — inherits from design-spec.md §3 ───────────
+   This file is the canonical wiring point for design-spec tokens into Tailwind 4.
+   When design-spec.md adds or revises a token, mirror the change here, not the other way around.
+*/
+
+:root {
+  /* Brand & primary accent */
+  --brand-green: #3a8a64;
+  --brand-green-dark: #2e6e51;
+  --brand-green-tint-bg: #f0f8f3;
+  --brand-green-tint-border: #d0e3d8;
+
+  /* Risk / amber */
+  --risk-amber: #b87328;
+  --risk-amber-tint-bg: #fdf7ec;
+  --risk-amber-tint-border: #e8d4b8;
+
+  /* Admin / blue */
+  --admin-blue: #3a5891;
+  --admin-blue-tint-bg: #eef3fb;
+  --admin-blue-tint-border: #d8e0f0;
+  --admin-blue-pill-bg: #dde8f6;
+  --admin-blue-pill-border: #bccae0;
+
+  /* Neutrals — text */
+  --text-primary: #1a1a1c;
+  --text-secondary: #5a5a60;
+  --text-tertiary: #8a8a90;
+  --text-muted: #9b9ba0;
+
+  /* Surfaces */
+  --bg-page: #f5f6f8;
+  --bg-surface: #ffffff;
+  --bg-subtle: #e5e8ec;
+
+  /* Borders */
+  --border-subtle: #e5e6e9;
+  --border-emphasized: #dadbde;
+
+  /* Destructive (form errors etc.) */
+  --destructive: #a52a2a;
+}
+
+/* Tailwind 4 — expose the tokens as utility classes via @theme.
+   Pattern: `bg-page`, `text-text-primary`, `border-border-subtle`, etc. */
+@theme inline {
+  --color-brand-green: var(--brand-green);
+  --color-brand-green-dark: var(--brand-green-dark);
+  --color-brand-green-tint-bg: var(--brand-green-tint-bg);
+  --color-brand-green-tint-border: var(--brand-green-tint-border);
+
+  --color-risk-amber: var(--risk-amber);
+  --color-risk-amber-tint-bg: var(--risk-amber-tint-bg);
+  --color-risk-amber-tint-border: var(--risk-amber-tint-border);
+
+  --color-admin-blue: var(--admin-blue);
+  --color-admin-blue-tint-bg: var(--admin-blue-tint-bg);
+  --color-admin-blue-tint-border: var(--admin-blue-tint-border);
+  --color-admin-blue-pill-bg: var(--admin-blue-pill-bg);
+  --color-admin-blue-pill-border: var(--admin-blue-pill-border);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-muted: var(--text-muted);
+
+  --color-bg-page: var(--bg-page);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-subtle: var(--bg-subtle);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-emphasized: var(--border-emphasized);
+
+  --color-destructive: var(--destructive);
+
+  --font-sans: var(--font-manrope);
+
+  /* Marketing spacing scale — addendum §3 */
+  --spacing-section-y-mobile: 48px;
+  --spacing-section-y-desktop: 80px;
+  --spacing-hero-y-mobile: 64px;
+  --spacing-hero-y-desktop: 120px;
+  --container-marketing-max: 1280px;
+  --reading-column-max: 720px;
+}
+
+/* Light mode only on marketing per addendum §1 — no dark mode toggle.
+   We intentionally do NOT honor prefers-color-scheme: dark here. */
+
+html, body {
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Marketing-section vertical rhythm utility — addendum §3 */
+.marketing-section {
+  padding-top: var(--spacing-section-y-mobile);
+  padding-bottom: var(--spacing-section-y-mobile);
+}
+@media (min-width: 768px) {
+  .marketing-section {
+    padding-top: var(--spacing-section-y-desktop);
+    padding-bottom: var(--spacing-section-y-desktop);
+  }
+}
+
+/* Container — addendum §3 */
+.marketing-container {
+  width: 100%;
+  max-width: var(--container-marketing-max);
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+@media (min-width: 768px) {
+  .marketing-container {
+    padding-inline: 40px;
+  }
+}
