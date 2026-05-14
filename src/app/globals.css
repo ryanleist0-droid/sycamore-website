@@ -123,3 +123,23 @@ html, body {
     padding-inline: 40px;
   }
 }
+
+/* MDX body prose — used inside <article className="mdx-prose"> on the
+   careers index, careers role pages, and (in D2) the marketing pages.
+   Tighter than the Tailwind typography plugin and inherits Sycamore tokens. */
+.mdx-prose { color: var(--text-primary); font-size: 15px; line-height: 1.65; }
+.mdx-prose h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin: 24px 0 12px; color: var(--text-primary); }
+.mdx-prose h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; margin: 32px 0 10px; color: var(--text-primary); }
+.mdx-prose h3 { font-size: 17px; font-weight: 700; margin: 22px 0 8px; color: var(--text-primary); }
+.mdx-prose p { margin: 0 0 14px; color: var(--text-secondary); }
+.mdx-prose strong { color: var(--text-primary); font-weight: 700; }
+.mdx-prose ul { margin: 0 0 16px; padding-left: 22px; list-style: disc; color: var(--text-secondary); }
+.mdx-prose ol { margin: 0 0 16px; padding-left: 22px; list-style: decimal; color: var(--text-secondary); }
+.mdx-prose li { margin: 4px 0; }
+.mdx-prose a { color: var(--brand-green); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.mdx-prose a:hover { color: var(--brand-green-dark); }
+.mdx-prose blockquote { border-left: 3px solid var(--brand-green-tint-border); padding-left: 14px; margin: 16px 0; color: var(--text-secondary); font-style: italic; }
+.mdx-prose code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.9em; background: var(--bg-subtle); padding: 1px 5px; border-radius: 4px; }
+.mdx-prose hr { margin: 28px 0; border: 0; border-top: 1px solid var(--border-subtle); }
+.mdx-prose > :first-child { margin-top: 0; }
+.mdx-prose > :last-child { margin-bottom: 0; }

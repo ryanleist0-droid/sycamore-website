@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { notFound } from "next/navigation";
+import matter from "gray-matter";
+import { MDXRemote } from "next-mdx-remote/rsc";
 import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
+import { JobPostingsList } from "@/components/careers/JobPostingsList";
+import type { Locale } from "@/lib/jobs";
 
 type Params = { locale: string };
 
@@ -12,6 +19,10 @@ export async function generateMetadata({
   const { locale } = await params;
   return {
     title: locale === "es" ? "Trabaja con nosotros" : "Careers",
+    description:
+      locale === "es"
+        ? "Únete a un Socio de Servicio de Entrega de Amazon con seis años en operación en Hagerstown, MD."
+        : "Join a six-year-old Amazon Delivery Service Partner based in Hagerstown, MD.",
     alternates: {
       canonical: `/${locale}/careers`,
       languages: { en: "/en/careers", es: "/es/careers", "x-default": "/en/careers" },
@@ -19,27 +30,57 @@ export async function generateMetadata({
   };
 }
 
+async function loadCareersMdx(locale: Locale): Promise<{
+  frontmatter: { title: string; description?: string };
+  body: string;
+} | null> {
+  const candidates = [locale, "en"] as const;
+  for (const loc of candidates) {
+    const filepath = path.join(process.cwd(), "content", "pages", loc, "careers.mdx");
+    try {
+      const raw = await fs.readFile(filepath, "utf8");
+      const parsed = matter(raw);
+      return {
+        frontmatter: parsed.data as { title: string; description?: string },
+        body: parsed.content,
+      };
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 export default async function CareersIndexPage({
   params,
 }: {
   params: Promise<Params>;
 }) {
-  const { locale } = await params;
-  setRequestLocale(locale);
+  const { locale: localeParam } = await params;
+  const locale: Locale = localeParam === "es" ? "es" : "en";
+  setRequestLocale(localeParam);
+
+  const page = await loadCareersMdx(locale);
+  if (!page) notFound();
 
   return (
     <>
       <MarketingHero
         variant="inner"
         eyebrow={locale === "es" ? "TRABAJA CON NOSOTROS" : "CAREERS"}
-        title={locale === "es" ? "Carreras en Sycamore" : "Careers at Sycamore"}
+        title={page.frontmatter.title}
+        subtitle={page.frontmatter.description}
       />
+
       <section className="marketing-container pb-20">
-        <p className="text-[14px] text-text-secondary max-w-[720px]">
-          {locale === "es"
-            ? "Vacantes pendientes — D3 publica la cuadrícula de JobPostingCard con la primera función de DBA7 y la validación de schema.org JobPosting."
-            : "Roles pending — D3 publishes the JobPostingCard grid with the seed DBA7 role and schema.org JobPosting validation."}
-        </p>
+        <article className="mdx-prose max-w-[720px]">
+          <MDXRemote
+            source={page.body}
+            components={{
+              JobPostingsList: () => <JobPostingsList locale={locale} />,
+            }}
+          />
+        </article>
       </section>
     </>
   );
