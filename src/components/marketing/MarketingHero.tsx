@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -8,8 +9,17 @@ import { cn } from "@/lib/utils";
  * Variant C (per-role) lives in src/components/careers/JobPostingPage.
  *
  * Hero CTAs use the hero-scale button variants (addendum §4.6) inline below.
+ *
+ * 2026-05-15: variant="inner" gained an optional `image` prop. Renders a
+ * 21:9 banner below the headline, sharing the 14px radius treatment with
+ * PhotoGallery and InlineImage so all hero photography reads as one system.
  */
-type MarketingRoute = "/services" | "/about" | "/careers" | "/contact";
+type MarketingRoute =
+  | "/services"
+  | "/about"
+  | "/careers"
+  | "/community"
+  | "/contact";
 
 type CTA = {
   label: string;
@@ -24,6 +34,8 @@ export function MarketingHero({
   ctaPrimary,
   ctaSecondary,
   right,
+  image,
+  imageAlt,
 }: {
   variant: "home" | "inner";
   eyebrow?: string;
@@ -32,6 +44,8 @@ export function MarketingHero({
   ctaPrimary?: CTA;
   ctaSecondary?: CTA;
   right?: React.ReactNode;
+  image?: string;
+  imageAlt?: string;
 }) {
   if (variant === "home") {
     return (
@@ -90,6 +104,18 @@ export function MarketingHero({
         <p className="mt-4 text-[16px] md:text-[18px] text-text-secondary max-w-[720px]">
           {subtitle}
         </p>
+      )}
+      {image && (
+        <div className="mt-8 relative w-full aspect-[21/9] rounded-[14px] overflow-hidden">
+          <Image
+            src={image}
+            alt={imageAlt ?? ""}
+            fill
+            priority
+            sizes="(min-width: 1280px) 1200px, 100vw"
+            className="object-cover"
+          />
+        </div>
       )}
     </section>
   );

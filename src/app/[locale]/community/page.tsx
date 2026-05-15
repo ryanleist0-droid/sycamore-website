@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
+import { PhotoGallery } from "@/components/marketing/PhotoGallery";
 import { InlineImage } from "@/components/marketing/InlineImage";
 import { loadMarketingPage } from "@/lib/pages";
 import type { Locale } from "@/lib/jobs";
@@ -16,18 +17,22 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale: localeParam } = await params;
   const locale: Locale = localeParam === "es" ? "es" : "en";
-  const page = await loadMarketingPage(locale, "about");
+  const page = await loadMarketingPage(locale, "community");
   return {
-    title: page?.frontmatter.title ?? (locale === "es" ? "Nosotros" : "About"),
+    title: page?.frontmatter.title ?? (locale === "es" ? "Comunidad" : "Community"),
     description: page?.frontmatter.description,
     alternates: {
-      canonical: `/${locale}/about`,
-      languages: { en: "/en/about", es: "/es/about", "x-default": "/en/about" },
+      canonical: `/${locale}/community`,
+      languages: {
+        en: "/en/community",
+        es: "/es/community",
+        "x-default": "/en/community",
+      },
     },
   };
 }
 
-export default async function AboutPage({
+export default async function CommunityPage({
   params,
 }: {
   params: Promise<Params>;
@@ -36,7 +41,7 @@ export default async function AboutPage({
   const locale: Locale = localeParam === "es" ? "es" : "en";
   setRequestLocale(localeParam);
 
-  const page = await loadMarketingPage(locale, "about");
+  const page = await loadMarketingPage(locale, "community");
   if (!page) notFound();
 
   const hero = page.frontmatter.hero;
@@ -46,7 +51,7 @@ export default async function AboutPage({
       {hero ? (
         <MarketingHero
           variant="inner"
-          eyebrow={locale === "es" ? "NOSOTROS" : "ABOUT"}
+          eyebrow={locale === "es" ? "COMUNIDAD" : "COMMUNITY"}
           title={hero.headline}
           subtitle={hero.subtitle}
           image={hero.image}
@@ -55,7 +60,13 @@ export default async function AboutPage({
       ) : null}
       <section className="marketing-container pb-20">
         <article className="mdx-prose max-w-[720px]">
-          <MDXRemote source={page.body} components={{ InlineImage }} />
+          <MDXRemote
+            source={page.body}
+            components={{
+              PhotoGallery,
+              InlineImage,
+            }}
+          />
         </article>
       </section>
     </>

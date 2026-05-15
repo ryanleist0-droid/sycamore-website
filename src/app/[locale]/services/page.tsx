@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
+import { InlineImage } from "@/components/marketing/InlineImage";
 import { loadMarketingPage } from "@/lib/pages";
 import type { Locale } from "@/lib/jobs";
 
@@ -52,11 +53,13 @@ export default async function ServicesPage({
           eyebrow={locale === "es" ? "SERVICIOS" : "SERVICES"}
           title={hero.headline}
           subtitle={hero.subtitle}
+          image={hero.image}
+          imageAlt={hero.imageAlt}
         />
       ) : null}
       <section className="marketing-container pb-20">
         <article className="mdx-prose max-w-[720px]">
-          <MDXRemote source={page.body} />
+          <MDXRemote source={page.body} components={{ InlineImage }} />
         </article>
       </section>
     </>

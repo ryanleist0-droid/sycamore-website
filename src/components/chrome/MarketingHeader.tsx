@@ -9,9 +9,13 @@ import { LocaleSwitcher } from "./LocaleSwitcher";
  */
 export function MarketingHeader() {
   const t = useTranslations("nav");
-  const items: { href: "/services" | "/about" | "/careers" | "/contact"; label: string }[] = [
+  const items: {
+    href: "/services" | "/about" | "/community" | "/careers" | "/contact";
+    label: string;
+  }[] = [
     { href: "/services", label: t("services") },
     { href: "/about", label: t("about") },
+    { href: "/community", label: t("community") },
     { href: "/careers", label: t("careers") },
     { href: "/contact", label: t("contact") },
   ];
@@ -21,10 +25,10 @@ export function MarketingHeader() {
       <div className="marketing-container h-full flex items-center justify-between gap-6">
         <Link href="/" className="flex items-center group" aria-label="Sycamore Logistics — Home">
           <Image
-            src="/images/logo-sycamore-horizontal.png"
+            src="/images/sycamore_logo_horizontal_color.png"
             alt="Sycamore Logistics"
-            width={612}
-            height={190}
+            width={2546}
+            height={788}
             priority
             className="h-9 w-auto md:h-10"
           />

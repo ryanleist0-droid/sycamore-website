@@ -19,10 +19,10 @@ export function MarketingFooter() {
         <div className="space-y-3">
           <Link href="/" className="inline-flex items-center" aria-label="Sycamore Logistics — Home">
             <Image
-              src="/images/logo-sycamore-horizontal.png"
+              src="/images/sycamore_logo_horizontal_color.png"
               alt="Sycamore Logistics"
-              width={612}
-              height={190}
+              width={2546}
+              height={788}
               className="h-9 w-auto"
             />
           </Link>
@@ -38,6 +38,7 @@ export function MarketingFooter() {
           <ul className="space-y-2 text-[14px]">
             <li><Link href="/about" className="text-text-secondary hover:text-brand-green">{nav("about")}</Link></li>
             <li><Link href="/services" className="text-text-secondary hover:text-brand-green">{nav("services")}</Link></li>
+            <li><Link href="/community" className="text-text-secondary hover:text-brand-green">{nav("community")}</Link></li>
             <li><Link href="/careers" className="text-text-secondary hover:text-brand-green">{nav("careers")}</Link></li>
             <li><Link href="/contact" className="text-text-secondary hover:text-brand-green">{nav("contact")}</Link></li>
           </ul>

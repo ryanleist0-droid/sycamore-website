@@ -5,6 +5,7 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { FountainApplyButton } from "@/components/careers/FountainApplyButton";
 import { JobPostingSchema } from "@/components/careers/JobPostingSchema";
+import { InlineImage } from "@/components/marketing/InlineImage";
 import {
   getAllJobs,
   getJobBySlug,
@@ -114,7 +115,7 @@ export default async function JobPostingPage({
       <section className="marketing-container pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           <article className="mdx-prose lg:col-span-8 max-w-[720px]">
-            <MDXRemote source={job.body} />
+            <MDXRemote source={job.body} components={{ InlineImage }} />
           </article>
 
           <aside className="lg:col-span-4">

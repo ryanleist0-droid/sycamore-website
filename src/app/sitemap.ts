@@ -77,7 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Stub routes — D2 fills them in. Listed in English only per commission
   // until Spanish copy lands.
-  for (const stub of ["about", "services", "contact"]) {
+  for (const stub of ["about", "services", "community", "contact"]) {
     entries.push({
       url: `${BASE_URL}/en/${stub}`,
       lastModified: now,

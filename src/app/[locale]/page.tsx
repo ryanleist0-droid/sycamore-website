@@ -6,6 +6,7 @@ import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
 import { StatBlock } from "@/components/marketing/StatBlock";
 import { PhotoPlaceholder } from "@/components/marketing/PhotoPlaceholder";
+import { InlineImage } from "@/components/marketing/InlineImage";
 import { loadMarketingPage } from "@/lib/pages";
 import type { Locale } from "@/lib/jobs";
 
@@ -83,7 +84,7 @@ export default async function HomePage({
 
       <section className="marketing-container pb-12 md:pb-16">
         <article className="mdx-prose max-w-[720px]">
-          <MDXRemote source={page.body} />
+          <MDXRemote source={page.body} components={{ InlineImage }} />
         </article>
       </section>
 

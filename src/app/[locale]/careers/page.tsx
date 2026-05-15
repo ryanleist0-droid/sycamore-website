@@ -6,6 +6,7 @@ import matter from "gray-matter";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
+import { InlineImage } from "@/components/marketing/InlineImage";
 import { JobPostingsList } from "@/components/careers/JobPostingsList";
 import type { Locale } from "@/lib/jobs";
 
@@ -70,6 +71,12 @@ export default async function CareersIndexPage({
         eyebrow={locale === "es" ? "TRABAJA CON NOSOTROS" : "CAREERS"}
         title={page.frontmatter.title}
         subtitle={page.frontmatter.description}
+        image="/images/sycamore_operations_004.jpg"
+        imageAlt={
+          locale === "es"
+            ? "Equipo de Sycamore Logistics durante la jornada"
+            : "Sycamore Logistics driver at work during the day"
+        }
       />
 
       <section className="marketing-container pb-20">
@@ -78,6 +85,7 @@ export default async function CareersIndexPage({
             source={page.body}
             components={{
               JobPostingsList: () => <JobPostingsList locale={locale} />,
+              InlineImage,
             }}
           />
         </article>
