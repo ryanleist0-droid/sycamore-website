@@ -19,7 +19,10 @@ export async function JobPostingsList({ locale }: { locale: Locale }) {
           {locale === "es"
             ? "Sycamore no está contratando para ningún rol en este momento. Vuelve a revisar pronto, o déjanos un mensaje en la página de "
             : "Sycamore isn't hiring for any roles right now. Check back soon — or drop us a note on the "}
-          <a className="text-brand-green font-semibold hover:text-brand-green-dark" href={`/${locale}/contact`}>
+          <a
+            className="text-brand-green font-semibold hover:text-brand-green-dark"
+            href={`https://www.sycamore-logistics.com/${locale}/contact`}
+          >
             {locale === "es" ? "Contacto" : "Contact"}
           </a>
           {locale === "es"
