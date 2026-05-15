@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
-import { ContactFormPlaceholder } from "@/components/marketing/ContactFormPlaceholder";
+import { ContactForm } from "@/components/marketing/ContactForm";
 import { loadMarketingPage } from "@/lib/pages";
 import type { Locale } from "@/lib/jobs";
 
@@ -60,7 +60,7 @@ export default async function ContactPage({
           <MDXRemote
             source={page.body}
             components={{
-              ContactForm: () => <ContactFormPlaceholder locale={locale} />,
+              ContactForm: () => <ContactForm />,
             }}
           />
         </article>

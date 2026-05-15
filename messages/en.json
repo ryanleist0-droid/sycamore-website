@@ -31,5 +31,46 @@
   "common": {
     "tbd": "TBD",
     "comingSoon": "Coming soon"
+  },
+  "contact": {
+    "labels": {
+      "name": "Your name",
+      "email": "Email address",
+      "phone": "Phone (optional)",
+      "category": "How can we help?",
+      "message": "Your message",
+      "submit": "Send message",
+      "submitting": "Sending…"
+    },
+    "placeholders": {
+      "name": "Jane Driver",
+      "email": "you@example.com",
+      "phone": "Optional",
+      "categoryPrompt": "Select a topic",
+      "message": "Tell us a bit about what you're looking for."
+    },
+    "categories": {
+      "sales": "Working with Sycamore (sales / partnerships)",
+      "careers": "Joining the team (careers)",
+      "press": "Press / media",
+      "other": "Something else"
+    },
+    "errors": {
+      "required": "Required",
+      "emailInvalid": "Please enter a valid email address",
+      "messageTooShort": "Tell us a little more — at least 10 characters.",
+      "messageTooLong": "Please keep it under 5000 characters.",
+      "categoryRequired": "Pick the option that fits best",
+      "turnstileMissing": "Please complete the verification challenge above",
+      "turnstileFailed": "Verification failed, please retry.",
+      "rateLimited": "You've sent a lot of messages recently. Please try again in a bit.",
+      "network": "Couldn't reach our servers, please try again.",
+      "serverError": "Something went wrong on our end. Please try again.",
+      "siteKeyMissing": "Form is misconfigured (verification site key missing). Email us at info@sycamorelogistics.org and we'll fix it."
+    },
+    "success": {
+      "title": "Got it — message received.",
+      "body": "Thanks for reaching out. We'll get back to you within one business day."
+    }
   }
 }

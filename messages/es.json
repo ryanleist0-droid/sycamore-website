@@ -31,5 +31,46 @@
   "common": {
     "tbd": "Por definir",
     "comingSoon": "Próximamente"
+  },
+  "contact": {
+    "labels": {
+      "name": "Tu nombre",
+      "email": "Correo electrónico",
+      "phone": "Teléfono (opcional)",
+      "category": "¿Cómo podemos ayudarte?",
+      "message": "Tu mensaje",
+      "submit": "Enviar mensaje",
+      "submitting": "Enviando…"
+    },
+    "placeholders": {
+      "name": "Jane Driver",
+      "email": "tu@ejemplo.com",
+      "phone": "Opcional",
+      "categoryPrompt": "Selecciona un tema",
+      "message": "Cuéntanos un poco sobre lo que buscas."
+    },
+    "categories": {
+      "sales": "Trabajar con Sycamore (ventas / alianzas)",
+      "careers": "Unirte al equipo (carreras)",
+      "press": "Prensa / medios",
+      "other": "Otra cosa"
+    },
+    "errors": {
+      "required": "Obligatorio",
+      "emailInvalid": "Por favor ingresa un correo electrónico válido",
+      "messageTooShort": "Cuéntanos un poco más — al menos 10 caracteres.",
+      "messageTooLong": "Por favor mantenlo bajo 5000 caracteres.",
+      "categoryRequired": "Elige la opción que mejor encaje",
+      "turnstileMissing": "Por favor completa la verificación arriba",
+      "turnstileFailed": "La verificación falló, por favor inténtalo de nuevo.",
+      "rateLimited": "Has enviado muchos mensajes recientemente. Inténtalo de nuevo en un rato.",
+      "network": "No pudimos contactar a nuestros servidores, inténtalo de nuevo.",
+      "serverError": "Algo salió mal de nuestro lado. Por favor inténtalo de nuevo.",
+      "siteKeyMissing": "El formulario está mal configurado (falta la clave de verificación). Escríbenos a info@sycamorelogistics.org y lo arreglamos."
+    },
+    "success": {
+      "title": "Listo — mensaje recibido.",
+      "body": "Gracias por escribirnos. Te responderemos en un día hábil."
+    }
   }
 }
