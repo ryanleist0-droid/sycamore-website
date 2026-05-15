@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { MDXRemote } from "next-mdx-remote/rsc";
 import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
+import { ContactFormPlaceholder } from "@/components/marketing/ContactFormPlaceholder";
+import { loadMarketingPage } from "@/lib/pages";
+import type { Locale } from "@/lib/jobs";
 
 type Params = { locale: string };
 
@@ -9,12 +14,19 @@ export async function generateMetadata({
 }: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale: localeParam } = await params;
+  const locale: Locale = localeParam === "es" ? "es" : "en";
+  const page = await loadMarketingPage(locale, "contact");
   return {
-    title: locale === "es" ? "Contacto" : "Contact",
+    title: page?.frontmatter.title ?? (locale === "es" ? "Contacto" : "Contact"),
+    description: page?.frontmatter.description,
     alternates: {
       canonical: `/${locale}/contact`,
-      languages: { en: "/en/contact", es: "/es/contact", "x-default": "/en/contact" },
+      languages: {
+        en: "/en/contact",
+        es: "/es/contact",
+        "x-default": "/en/contact",
+      },
     },
   };
 }
@@ -24,22 +36,34 @@ export default async function ContactPage({
 }: {
   params: Promise<Params>;
 }) {
-  const { locale } = await params;
-  setRequestLocale(locale);
+  const { locale: localeParam } = await params;
+  const locale: Locale = localeParam === "es" ? "es" : "en";
+  setRequestLocale(localeParam);
+
+  const page = await loadMarketingPage(locale, "contact");
+  if (!page) notFound();
+
+  const hero = page.frontmatter.hero;
 
   return (
     <>
-      <MarketingHero
-        variant="inner"
-        eyebrow={locale === "es" ? "CONTACTO" : "CONTACT"}
-        title={locale === "es" ? "Hablemos" : "Get in touch"}
-      />
+      {hero ? (
+        <MarketingHero
+          variant="inner"
+          eyebrow={locale === "es" ? "CONTACTO" : "CONTACT"}
+          title={hero.headline}
+          subtitle={hero.subtitle}
+        />
+      ) : null}
       <section className="marketing-container pb-20">
-        <p className="text-[14px] text-text-secondary max-w-[720px]">
-          {locale === "es"
-            ? "Formulario de contacto pendiente — D5 cabla el formulario con validación de Cloudflare Turnstile y POST a /api/contact."
-            : "Contact form pending — D5 wires the form with Cloudflare Turnstile validation and POSTs to /api/contact."}
-        </p>
+        <article className="mdx-prose max-w-[720px]">
+          <MDXRemote
+            source={page.body}
+            components={{
+              ContactForm: () => <ContactFormPlaceholder locale={locale} />,
+            }}
+          />
+        </article>
       </section>
     </>
   );

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { LocaleSwitcher } from "./LocaleSwitcher";
@@ -18,11 +19,15 @@ export function MarketingHeader() {
   return (
     <header className="sticky top-0 z-40 h-[72px] border-b border-border-subtle bg-bg-surface backdrop-blur supports-[backdrop-filter]:bg-bg-surface/95">
       <div className="marketing-container h-full flex items-center justify-between gap-6">
-        <Link href="/" className="flex items-center gap-2 group">
-          <span className="size-2.5 rounded-full bg-brand-green" aria-hidden />
-          <span className="text-[18px] font-extrabold text-text-primary tracking-tight">
-            Sycamore
-          </span>
+        <Link href="/" className="flex items-center group" aria-label="Sycamore Logistics — Home">
+          <Image
+            src="/images/logo-sycamore-horizontal.png"
+            alt="Sycamore Logistics"
+            width={612}
+            height={190}
+            priority
+            className="h-9 w-auto md:h-10"
+          />
         </Link>
 
         <nav className="hidden md:flex items-center gap-7">

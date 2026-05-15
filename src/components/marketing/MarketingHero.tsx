@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils";
  *
  * Hero CTAs use the hero-scale button variants (addendum §4.6) inline below.
  */
+type MarketingRoute = "/services" | "/about" | "/careers" | "/contact";
+
 type CTA = {
   label: string;
-  href: "/services" | "/about" | "/careers" | "/contact";
+  href: MarketingRoute;
 };
 
 export function MarketingHero({

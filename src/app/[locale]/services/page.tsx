@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { MDXRemote } from "next-mdx-remote/rsc";
 import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
+import { loadMarketingPage } from "@/lib/pages";
+import type { Locale } from "@/lib/jobs";
 
 type Params = { locale: string };
 
@@ -9,12 +13,19 @@ export async function generateMetadata({
 }: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale: localeParam } = await params;
+  const locale: Locale = localeParam === "es" ? "es" : "en";
+  const page = await loadMarketingPage(locale, "services");
   return {
-    title: locale === "es" ? "Servicios" : "Services",
+    title: page?.frontmatter.title ?? (locale === "es" ? "Servicios" : "Services"),
+    description: page?.frontmatter.description,
     alternates: {
       canonical: `/${locale}/services`,
-      languages: { en: "/en/services", es: "/es/services", "x-default": "/en/services" },
+      languages: {
+        en: "/en/services",
+        es: "/es/services",
+        "x-default": "/en/services",
+      },
     },
   };
 }
@@ -24,22 +35,29 @@ export default async function ServicesPage({
 }: {
   params: Promise<Params>;
 }) {
-  const { locale } = await params;
-  setRequestLocale(locale);
+  const { locale: localeParam } = await params;
+  const locale: Locale = localeParam === "es" ? "es" : "en";
+  setRequestLocale(localeParam);
+
+  const page = await loadMarketingPage(locale, "services");
+  if (!page) notFound();
+
+  const hero = page.frontmatter.hero;
 
   return (
     <>
-      <MarketingHero
-        variant="inner"
-        eyebrow={locale === "es" ? "SERVICIOS" : "SERVICES"}
-        title={locale === "es" ? "Lo que hacemos" : "What we do"}
-      />
+      {hero ? (
+        <MarketingHero
+          variant="inner"
+          eyebrow={locale === "es" ? "SERVICIOS" : "SERVICES"}
+          title={hero.headline}
+          subtitle={hero.subtitle}
+        />
+      ) : null}
       <section className="marketing-container pb-20">
-        <p className="text-[14px] text-text-secondary max-w-[720px]">
-          {locale === "es"
-            ? "Contenido pendiente — D2 publica la cuadrícula de servicios y el bloque de imagen + texto del alcance operacional."
-            : "Content pending — D2 publishes the service grid and operational-footprint image-text block."}
-        </p>
+        <article className="mdx-prose max-w-[720px]">
+          <MDXRemote source={page.body} />
+        </article>
       </section>
     </>
   );
