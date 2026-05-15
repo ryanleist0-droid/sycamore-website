@@ -8,6 +8,7 @@ import { StatBlock } from "@/components/marketing/StatBlock";
 import { PhotoPlaceholder } from "@/components/marketing/PhotoPlaceholder";
 import { InlineImage } from "@/components/marketing/InlineImage";
 import { loadMarketingPage } from "@/lib/pages";
+import { localeAlternates } from "@/lib/locale-alternates";
 import type { Locale } from "@/lib/jobs";
 
 type Params = { locale: string };
@@ -26,7 +27,7 @@ export async function generateMetadata({
     description: page?.frontmatter.description,
     alternates: {
       canonical: `/${locale}`,
-      languages: { en: "/en", es: "/es", "x-default": "/en" },
+      languages: localeAlternates(""),
     },
   };
 }

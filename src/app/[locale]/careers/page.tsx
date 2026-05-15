@@ -8,6 +8,7 @@ import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
 import { InlineImage } from "@/components/marketing/InlineImage";
 import { JobPostingsList } from "@/components/careers/JobPostingsList";
+import { localeAlternates } from "@/lib/locale-alternates";
 import type { Locale } from "@/lib/jobs";
 
 type Params = { locale: string };
@@ -26,7 +27,7 @@ export async function generateMetadata({
         : "Join a six-year-old Amazon Delivery Service Partner based in Hagerstown, MD.",
     alternates: {
       canonical: `/${locale}/careers`,
-      languages: { en: "/en/careers", es: "/es/careers", "x-default": "/en/careers" },
+      languages: localeAlternates("/careers"),
     },
   };
 }

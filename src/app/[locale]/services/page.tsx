@@ -5,6 +5,7 @@ import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
 import { InlineImage } from "@/components/marketing/InlineImage";
 import { loadMarketingPage } from "@/lib/pages";
+import { localeAlternates } from "@/lib/locale-alternates";
 import type { Locale } from "@/lib/jobs";
 
 type Params = { locale: string };
@@ -22,11 +23,7 @@ export async function generateMetadata({
     description: page?.frontmatter.description,
     alternates: {
       canonical: `/${locale}/services`,
-      languages: {
-        en: "/en/services",
-        es: "/es/services",
-        "x-default": "/en/services",
-      },
+      languages: localeAlternates("/services"),
     },
   };
 }

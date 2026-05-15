@@ -28,11 +28,16 @@ const AI_TRAINING_BOTS = [
   "ImagesiftBot",
 ] as const;
 
+// Spanish-locale gate (2026-05-15) — see src/components/chrome/LocaleSwitcher.tsx
+// for the full reversal procedure. Spanish content is stub-only across the
+// site; Disallow keeps Google from indexing partial Spanish pages while the
+// routes themselves stay reachable. To re-enable Spanish, drop the
+// `/es/` disallow entries from both the Googlebot rule and the `*` rule.
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      { userAgent: "Googlebot", allow: "/" },
-      { userAgent: "*", allow: "/" },
+      { userAgent: "Googlebot", allow: "/", disallow: "/es/" },
+      { userAgent: "*", allow: "/", disallow: "/es/" },
       ...AI_TRAINING_BOTS.map((userAgent) => ({ userAgent, disallow: "/" })),
     ],
     sitemap: `${BASE_URL}/sitemap.xml`,

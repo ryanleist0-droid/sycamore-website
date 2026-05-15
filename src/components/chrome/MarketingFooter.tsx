@@ -2,6 +2,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { SPANISH_ENABLED } from "@/lib/i18n-config";
 
 /**
  * Marketing footer — addendum §4.2.
@@ -15,7 +16,13 @@ export function MarketingFooter() {
 
   return (
     <footer className="bg-bg-page border-t border-border-subtle">
-      <div className="marketing-container pt-16 pb-8 md:pt-16 md:pb-8 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div
+        className={
+          SPANISH_ENABLED
+            ? "marketing-container pt-16 pb-8 md:pt-16 md:pb-8 grid grid-cols-1 md:grid-cols-4 gap-10"
+            : "marketing-container pt-16 pb-8 md:pt-16 md:pb-8 grid grid-cols-1 md:grid-cols-3 gap-10"
+        }
+      >
         <div className="space-y-3">
           <Link href="/" className="inline-flex items-center" aria-label="Sycamore Logistics — Home">
             <Image
@@ -54,12 +61,14 @@ export function MarketingFooter() {
           </ul>
         </div>
 
-        <div>
-          <h4 className="text-[11px] uppercase tracking-[1.5px] font-bold text-text-tertiary mb-3">
-            {t("languages")}
-          </h4>
-          <LocaleSwitcher />
-        </div>
+        {SPANISH_ENABLED && (
+          <div>
+            <h4 className="text-[11px] uppercase tracking-[1.5px] font-bold text-text-tertiary mb-3">
+              {t("languages")}
+            </h4>
+            <LocaleSwitcher />
+          </div>
+        )}
       </div>
 
       <div className="marketing-container border-t border-border-emphasized">

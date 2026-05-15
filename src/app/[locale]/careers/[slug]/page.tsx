@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { FountainApplyButton } from "@/components/careers/FountainApplyButton";
 import { JobPostingSchema } from "@/components/careers/JobPostingSchema";
 import { InlineImage } from "@/components/marketing/InlineImage";
+import { localeAlternates } from "@/lib/locale-alternates";
 import {
   getAllJobs,
   getJobBySlug,
@@ -46,11 +47,7 @@ export async function generateMetadata({
     description: jobDescription(job, locale),
     alternates: {
       canonical: `/${locale}/careers/${slug}`,
-      languages: {
-        en: `/en/careers/${slug}`,
-        es: `/es/careers/${slug}`,
-        "x-default": `/en/careers/${slug}`,
-      },
+      languages: localeAlternates(`/careers/${slug}`),
     },
     openGraph: { title, description: jobDescription(job, locale), type: "article" },
   };

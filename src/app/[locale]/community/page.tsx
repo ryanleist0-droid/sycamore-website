@@ -6,6 +6,7 @@ import { MarketingHero } from "@/components/marketing/MarketingHero";
 import { PhotoGallery } from "@/components/marketing/PhotoGallery";
 import { InlineImage } from "@/components/marketing/InlineImage";
 import { loadMarketingPage } from "@/lib/pages";
+import { localeAlternates } from "@/lib/locale-alternates";
 import type { Locale } from "@/lib/jobs";
 
 type Params = { locale: string };
@@ -23,11 +24,7 @@ export async function generateMetadata({
     description: page?.frontmatter.description,
     alternates: {
       canonical: `/${locale}/community`,
-      languages: {
-        en: "/en/community",
-        es: "/es/community",
-        "x-default": "/en/community",
-      },
+      languages: localeAlternates("/community"),
     },
   };
 }

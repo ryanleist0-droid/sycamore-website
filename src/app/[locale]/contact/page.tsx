@@ -5,6 +5,7 @@ import { setRequestLocale } from "next-intl/server";
 import { MarketingHero } from "@/components/marketing/MarketingHero";
 import { ContactForm } from "@/components/marketing/ContactForm";
 import { loadMarketingPage } from "@/lib/pages";
+import { localeAlternates } from "@/lib/locale-alternates";
 import type { Locale } from "@/lib/jobs";
 
 type Params = { locale: string };
@@ -22,11 +23,7 @@ export async function generateMetadata({
     description: page?.frontmatter.description,
     alternates: {
       canonical: `/${locale}/contact`,
-      languages: {
-        en: "/en/contact",
-        es: "/es/contact",
-        "x-default": "/en/contact",
-      },
+      languages: localeAlternates("/contact"),
     },
   };
 }

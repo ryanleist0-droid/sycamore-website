@@ -1,8 +1,20 @@
 import type { MetadataRoute } from "next";
 import { getAllJobs } from "@/lib/jobs";
 import { routing } from "@/i18n/routing";
+import { SPANISH_ENABLED } from "@/lib/i18n-config";
 
 const BASE_URL = "https://sycamore-logistics.com";
+
+/**
+ * Spanish-locale gate (2026-05-15) — see
+ * src/components/chrome/LocaleSwitcher.tsx for the full reversal procedure.
+ * With SPANISH_ENABLED=false the sitemap below only emits `en` entries and
+ * the hreflang alternates only advertise `en` + `x-default` (both → en).
+ * Flipping SPANISH_ENABLED back to true automatically restores both shapes.
+ */
+const VISIBLE_LOCALES = routing.locales.filter(
+  (l) => SPANISH_ENABLED || l !== "es",
+);
 
 /**
  * Build the hreflang `alternates.languages` map for a path that exists in
@@ -11,7 +23,7 @@ const BASE_URL = "https://sycamore-logistics.com";
  */
 function languageAlternates(pathSuffix: string): Record<string, string> {
   const alternates: Record<string, string> = {};
-  for (const locale of routing.locales) {
+  for (const locale of VISIBLE_LOCALES) {
     alternates[locale] = `${BASE_URL}/${locale}${pathSuffix}`;
   }
   alternates["x-default"] = `${BASE_URL}/${routing.defaultLocale}${pathSuffix}`;
@@ -35,7 +47,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // Locale home pages.
-  for (const locale of routing.locales) {
+  for (const locale of VISIBLE_LOCALES) {
     entries.push({
       url: `${BASE_URL}/${locale}`,
       lastModified: now,
@@ -46,7 +58,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Careers index, both locales.
-  for (const locale of routing.locales) {
+  for (const locale of VISIBLE_LOCALES) {
     entries.push({
       url: `${BASE_URL}/${locale}/careers`,
       lastModified: now,
@@ -64,7 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const d = new Date(job.datePosted);
       return Number.isNaN(d.getTime()) ? now : d;
     })();
-    for (const locale of routing.locales) {
+    for (const locale of VISIBLE_LOCALES) {
       entries.push({
         url: `${BASE_URL}/${locale}${suffix}`,
         lastModified,
