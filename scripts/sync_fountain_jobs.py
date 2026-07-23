@@ -205,6 +205,16 @@ def _iso_date(value) -> str | None:
     return m.group(1) if m else None
 
 
+def _clean_desc(html: str | None) -> str | None:
+    """Fountain's opening `description` is a full HTML job ad — exactly what
+    Google for Jobs wants in JobPosting.description. Normalize CRLF and trim;
+    keep the HTML formatting."""
+    if not html:
+        return None
+    s = str(html).replace("\r\n", "\n").replace("\r", "\n").strip()
+    return s or None
+
+
 def opening_to_fields(op: dict, tpl_fm: dict, now: datetime) -> dict:
     addr = _parse_address(op.get("address") or "")
     pay = _pay(op)
@@ -223,6 +233,7 @@ def opening_to_fields(op: dict, tpl_fm: dict, now: datetime) -> dict:
         "datePosted": date_posted,
         "validThrough": valid_through,
         "fountainApplyUrl": op.get("apply_url", ""),
+        "descriptionHtml": _clean_desc(op.get("description")),
         "tokens": _labels(addr["city"], addr["state"], pay, tpl_fm),
     }
 
@@ -255,6 +266,8 @@ def render_job_mdx(tpl: dict, f: dict) -> str:
         "fountainApplyUrl": f["fountainApplyUrl"],
         "source": "fountain",
     }
+    if f.get("descriptionHtml"):
+        frontmatter["descriptionHtml"] = f["descriptionHtml"]
     if locales:
         frontmatter["locales"] = locales
     body = _sub(tpl["body"], tok["en"]).lstrip("\n")

@@ -51,6 +51,13 @@ export type JobFrontmatter = {
   fountainApplyUrl: string;
   locales?: Partial<Record<Locale, JobLocaleOverride>>;
   /**
+   * Full job description as HTML (duties, pay, benefits, requirements), synced
+   * from the Fountain opening's `description`. Fed to the JobPosting JSON-LD's
+   * `description` (Google for Jobs requires a complete description, not the
+   * short teaser in `description`). Absent on hand-authored jobs → teaser used.
+   */
+  descriptionHtml?: string;
+  /**
    * Provenance. `"fountain"` = written by scripts/sync_fountain_jobs.py from a
    * live Fountain opening (auto-created, auto-pruned when the opening closes —
    * DO NOT hand-edit; changes are overwritten on the next sync). `"manual"`

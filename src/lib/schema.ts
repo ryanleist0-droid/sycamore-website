@@ -87,7 +87,11 @@ export function buildJobPostingJsonLd(
   origin = "https://sycamore-logistics.com",
 ) {
   const title = jobTitle(job, locale);
-  const description = jobDescription(job, locale);
+  // Google for Jobs wants the FULL job description (duties, pay, benefits,
+  // requirements) as HTML — a short teaser gets under-ranked or filtered.
+  // Prefer the complete descriptionHtml (synced from the Fountain opening);
+  // fall back to the teaser only when it's absent (e.g. hand-authored jobs).
+  const description = job.descriptionHtml || jobDescription(job, locale);
 
   return {
     "@context": "https://schema.org",
