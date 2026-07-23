@@ -4,35 +4,36 @@ Sync live Fountain openings -> content/jobs/*.mdx for the marketing site.
 
 WHY: hiring-SEO (Google for Jobs) rewards fresh, live postings and drops
 expired ones. Hand-maintained MDX goes stale and doesn't scale past one role.
-This script is the source of truth for which jobs are live: it reads the active
-Fountain openings, joins each against an editorial template in
+This script is the source of truth for which jobs are live: it reads the
+publishable Fountain openings, joins each against an editorial template in
 content/job-templates/<roleType>.mdx, and writes a finished, schema-complete
-content/jobs/<slug>.mdx. Openings that close are pruned. datePosted /
-validThrough are refreshed every run so listings never expire out of Google.
+content/jobs/<slug>.mdx. Openings that close/hide are pruned. datePosted is the
+opening's real created date; validThrough is refreshed every run so live
+listings never expire out of Google.
 
 TOPOLOGY: runs on terminator67 (where the credentialed Fountain client + creds
 already live), then commits + pushes sycamore-website -> Vercel auto-deploys.
 It does NOT run on Vercel; no Fountain creds leave the server.
 
-CONTENT MODEL (hybrid):
-  Fountain (authoritative) -> which openings are active, station, location,
-                              freshness dates, apply URL, stable slug.
-  Editorial template       -> public title, salary, benefits, body copy, es
-                              overrides. Written once per role type, reused.
+CONTENT MODEL (hybrid, tuned to the real /funnels payload):
+  Fountain (authoritative) -> which openings publish (active + hiring + not
+                              private/internal), station, location, pay range,
+                              employment type, apply URL, slug, created date.
+  Editorial template       -> public title, benefits body, es overrides, image
+                              choices. {{PAY_MIN}} + {{LOCATION_LABEL}} tokens
+                              are filled per opening/locale.
+
+PUBLISH FILTER: active AND is_hiring_funnel AND NOT is_private AND NOT
+is_internal_funnel. Private/internal funnels stay off the public site — to
+publish one, change its visibility in Fountain (the right place), not here.
 
 SAFETY: dry-run by default (prints a plan, writes nothing). --write to write
 files; --push to also commit + push. --from-file <json> replays a saved
 `/funnels` dump so the mapping can be validated with no network / no creds.
 
-DEPENDS: PyYAML + the platform Fountain client. Run under the platform venv:
-  /home/coreadmin/sycamore-platform/venv/bin/python scripts/sync_fountain_jobs.py --dry-run
-(the client is stdlib-only, but this venv guarantees PyYAML is present).
-
-⚠️  FIELD MAPPING IS PROVISIONAL. Every access of a raw Fountain opening field
-is marked `TODO(probe)` — the exact names (active flag, location shape, slug,
-apply URL, date fields) must be confirmed against a real `/funnels` response
-(see scripts/README-fountain-sync.md for the one-time probe command). Until
-then, run only with --from-file / --dry-run.
+DEPENDS: PyYAML + the platform Fountain client. Run under **system python3**
+(has PyYAML; the platform venv does NOT). The client is stdlib-only and is
+imported via sys.path (PLATFORM_ROOT). See scripts/README-fountain-sync.md.
 """
 from __future__ import annotations
 
@@ -47,9 +48,8 @@ try:
     import yaml
 except ImportError:  # pragma: no cover
     sys.stderr.write(
-        "PyYAML is required. Run under the platform venv:\n"
-        "  /home/coreadmin/sycamore-platform/venv/bin/python "
-        "scripts/sync_fountain_jobs.py ...\n"
+        "PyYAML is required. Use system python3 (has PyYAML); the platform venv "
+        "does not. See scripts/README-fountain-sync.md.\n"
     )
     raise
 
@@ -62,21 +62,17 @@ PLATFORM_ROOT = "/home/coreadmin/sycamore-platform"
 # --- policy constants -------------------------------------------------------
 # validThrough = today + this many days, refreshed every run so a live opening
 # never expires out of Google for Jobs while it's still open on Fountain.
+# (Overridden by the opening's application_deadline when Fountain sets one.)
 VALIDITY_WINDOW_DAYS = 30
 COUNTRY_DEFAULT = "US"
-# Public apply URL pattern. TODO(probe): prefer the opening's own apply/careers
-# URL if the payload carries one; fall back to this pattern otherwise.
-APPLY_URL_PATTERN = (
-    "https://us-4.fountain.com/apply/sycamore-logistics-llc/opening/{slug}"
-)
-# Location display labels keyed off the derived (city, state). Extend as new
-# stations come online. The market label ("Hagerstown area") is intentionally
-# distinct from the physical city (Williamsport) — see the SEO doctrine note.
+_UNIT = {"hour": "HOUR", "day": "DAY", "week": "WEEK", "month": "MONTH", "year": "YEAR"}
+_JOB_HOURS = {"full_time": "FULL_TIME", "part_time": "PART_TIME"}
+# Market display labels keyed off the derived (city, state). The market label
+# ("Hagerstown area") is intentionally distinct from the physical city — see the
+# SEO doctrine note. Add rows as new stations come online; unknown -> generic.
 LOCATION_LABELS = {
-    ("Williamsport", "MD"): {
-        "en": "Hagerstown, MD area",
-        "es": "área de Hagerstown, MD",
-    },
+    ("Williamsport", "MD"): {"en": "Hagerstown, MD area", "es": "área de Hagerstown, MD"},
+    ("Hagerstown", "MD"): {"en": "Hagerstown, MD area", "es": "área de Hagerstown, MD"},
 }
 DEFAULT_LABEL = {"en": "{city}, {state} area", "es": "área de {city}, {state}"}
 
@@ -99,9 +95,8 @@ def _split_frontmatter(raw: str):
 
 
 def load_templates() -> list[dict]:
-    """Load content/job-templates/*.mdx. Each -> {roleType, patterns, fm, body}.
-    Longer/more-specific pattern lists first isn't guaranteed by fs order, so
-    we sort by roleType for deterministic first-match behaviour."""
+    """content/job-templates/*.mdx -> [{roleType, patterns, fm, body}], sorted
+    by roleType for deterministic first-match."""
     out = []
     if not os.path.isdir(TEMPLATES_DIR):
         return out
@@ -121,133 +116,148 @@ def load_templates() -> list[dict]:
     return out
 
 
-def match_role(title: str, templates: list[dict]) -> dict | None:
-    t = (title or "").lower()
+def match_role(op: dict, templates: list[dict]) -> dict | None:
+    """Match on the opening title + position name (the delivery signal lives in
+    one or the other)."""
+    hay = f"{op.get('title', '')} {(op.get('position') or {}).get('name', '')}".lower()
     for tpl in templates:
-        if any(p in t for p in tpl["patterns"]):
+        if any(p in hay for p in tpl["patterns"]):
             return tpl
     return None
 
 
 # ---------------------------------------------------------------------------
-# Fountain opening -> Job fields   ⚠️ PROVISIONAL — confirm against a real probe
+# Fountain opening -> Job fields   (finalized against a real /funnels response)
 # ---------------------------------------------------------------------------
-def opening_is_active(op: dict) -> bool:
-    # TODO(probe): confirm the flag name. Docs call it `active` (bool).
-    return bool(op.get("active", op.get("status") in (None, "active", "open", True)))
-
-
-def _slugify(s: str) -> str:
-    s = re.sub(r"[^a-z0-9]+", "-", (s or "").lower()).strip("-")
-    return s or "opening"
-
-
-def _parse_address(op: dict) -> dict:
-    """Best-effort city/state/zip from the opening. TODO(probe): the real
-    payload may already expose structured city/state/postal_code — prefer those
-    over regex-splitting a `location_address` string."""
-    # Structured fields first (guessed names).
-    city = op.get("city") or op.get("location_city")
-    state = op.get("state") or op.get("location_state")
-    postal = op.get("postal_code") or op.get("zip") or op.get("location_postal_code")
-    country = op.get("country") or COUNTRY_DEFAULT
-    # Fall back to parsing a "Street, City, ST 21795" address string.
-    if not (city and state):
-        addr = op.get("location_address") or op.get("address") or ""
-        m = re.search(r",\s*([A-Za-z .'-]+),\s*([A-Z]{2})\s*(\d{5})?", addr)
-        if m:
-            city = city or m.group(1).strip()
-            state = state or m.group(2).strip()
-            postal = postal or (m.group(3) or "")
-    return {
-        "city": (city or "").strip(),
-        "state": (state or "").strip(),
-        "postalCode": (postal or "").strip(),
-        "country": country,
-    }
-
-
-def _location_labels(city: str, state: str) -> dict:
-    lab = LOCATION_LABELS.get((city, state))
-    if lab:
-        return lab
-    return {
-        loc: tmpl.format(city=city, state=state)
-        for loc, tmpl in DEFAULT_LABEL.items()
-    }
-
-
-def opening_to_fields(op: dict, now: datetime) -> dict:
-    """Map a raw Fountain opening -> the Fountain-driven Job frontmatter layer.
-    ⚠️ Every op.get(...) here is a TODO(probe) until confirmed against a real
-    /funnels response."""
-    fid = op.get("id") or op.get("funnel_id")  # TODO(probe)
-    title = op.get("title") or op.get("name") or ""  # TODO(probe)
-    # Slug: prefer an explicit stable slug from the opening; else derive.
-    slug = op.get("slug") or _slugify(f"{op.get('external_id') or fid or title}")
-    addr = _parse_address(op)
-    labels = _location_labels(addr["city"], addr["state"])
-    # datePosted: prefer the opening's created_at; refresh-safe fallback = now.
-    created = op.get("created_at") or op.get("published_at")  # TODO(probe)
-    date_posted = _iso_date(created) or now.date().isoformat()
-    valid_through = (now + timedelta(days=VALIDITY_WINDOW_DAYS)).date().isoformat()
-    # Apply URL: prefer an explicit one; else the standard pattern on the slug.
-    apply_url = (
-        op.get("apply_url") or op.get("careers_url")  # TODO(probe)
-        or APPLY_URL_PATTERN.format(slug=slug)
+def should_publish(op: dict) -> bool:
+    """Only public, active hiring funnels reach the marketing site."""
+    return bool(
+        op.get("active")
+        and op.get("is_hiring_funnel", True)
+        and not op.get("is_private", False)
+        and not op.get("is_internal_funnel", False)
     )
-    station = (op.get("brand") or op.get("location_name") or "").strip()  # TODO(probe)
+
+
+def _slug_from_apply_url(url: str, fallback: str) -> str:
+    m = re.search(r"/opening/([^/?#]+)", url or "")
+    if m:
+        return m.group(1)
+    return re.sub(r"[^a-z0-9]+", "-", (fallback or "opening").lower()).strip("-")
+
+
+def _parse_address(addr: str) -> dict:
+    """'16604 Industrial Lane, Williamsport, MD, 21795, US' -> structured.
+    Robust to a missing street or country: locate ZIP + 2-letter state, take the
+    part before the state as the city."""
+    parts = [p.strip() for p in (addr or "").split(",") if p.strip()]
+    postal = next((p for p in parts if re.fullmatch(r"\d{5}(-\d{4})?", p)), "")
+    state = next((p for p in parts if re.fullmatch(r"[A-Z]{2}", p)), "")
+    city = ""
+    if state and state in parts:
+        i = parts.index(state)
+        if i > 0:
+            city = parts[i - 1]
+    country = COUNTRY_DEFAULT
+    if parts and re.fullmatch(r"[A-Z]{2,3}", parts[-1]) and parts[-1] != state:
+        country = parts[-1]
+    return {"city": city, "state": state, "postalCode": postal, "country": country}
+
+
+def _pay(op: dict) -> dict | None:
+    r = op.get("opening_pay_rate") or {}
+    lo = r.get("compensation_min") or r.get("compensation")
+    if lo is None:
+        return None
+    out = {
+        "minValue": float(lo),
+        "currency": r.get("compensation_currency_code") or "USD",
+        "unitText": _UNIT.get((r.get("compensation_type") or "hour").lower(), "HOUR"),
+    }
+    hi = r.get("compensation_max")
+    if hi is not None and float(hi) > float(lo):
+        out["maxValue"] = float(hi)
+    return out
+
+
+def _employment_type(op: dict) -> str:
+    return _JOB_HOURS.get((op.get("job_hours") or "").lower(), "FULL_TIME")
+
+
+def _labels(city: str, state: str, pay: dict | None, tpl_fm: dict) -> dict:
+    loc = LOCATION_LABELS.get((city, state)) or {
+        k: v.format(city=city or "your area", state=state or "")
+        for k, v in DEFAULT_LABEL.items()
+    }
+    pay_min = pay["minValue"] if pay else (tpl_fm.get("baseSalary") or {}).get("minValue", 0)
+    pay_str = f"{float(pay_min):.2f}"
     return {
-        "slug": slug,
-        "fountainTitle": title,
-        "station": station,
-        "location": {**addr, "displayName": labels["en"]},
-        "datePosted": date_posted,
-        "validThrough": valid_through,
-        "fountainApplyUrl": apply_url,
-        "labels": labels,
+        "en": {"{{LOCATION_LABEL}}": loc["en"], "{{PAY_MIN}}": pay_str},
+        "es": {"{{LOCATION_LABEL}}": loc["es"], "{{PAY_MIN}}": pay_str},
+        "displayName": loc["en"],
     }
 
 
 def _iso_date(value) -> str | None:
     if not value:
         return None
-    s = str(value)
-    m = re.match(r"(\d{4}-\d{2}-\d{2})", s)
+    m = re.match(r"(\d{4}-\d{2}-\d{2})", str(value))
     return m.group(1) if m else None
+
+
+def opening_to_fields(op: dict, tpl_fm: dict, now: datetime) -> dict:
+    addr = _parse_address(op.get("address") or "")
+    pay = _pay(op)
+    slug = _slug_from_apply_url(op.get("apply_url", ""), op.get("title", ""))
+    station = re.sub(r"\s*-\s*SYCM\b", "", (op.get("location") or {}).get("name", "")).strip()
+    date_posted = _iso_date(op.get("created_at")) or now.date().isoformat()
+    valid_through = _iso_date(op.get("application_deadline")) or (
+        now + timedelta(days=VALIDITY_WINDOW_DAYS)
+    ).date().isoformat()
+    return {
+        "slug": slug,
+        "station": station,
+        "location": {**addr, "displayName": _labels(addr["city"], addr["state"], pay, tpl_fm)["displayName"]},
+        "employmentType": _employment_type(op),
+        "baseSalary": pay or tpl_fm.get("baseSalary"),
+        "datePosted": date_posted,
+        "validThrough": valid_through,
+        "fountainApplyUrl": op.get("apply_url", ""),
+        "tokens": _labels(addr["city"], addr["state"], pay, tpl_fm),
+    }
 
 
 # ---------------------------------------------------------------------------
 # Render
 # ---------------------------------------------------------------------------
-def _sub_labels(text: str, labels: dict, locale: str) -> str:
-    return (text or "").replace("{{LOCATION_LABEL}}", labels.get(locale, labels["en"]))
+def _sub(text: str, tokens: dict) -> str:
+    out = text or ""
+    for k, v in tokens.items():
+        out = out.replace(k, str(v))
+    return out
 
 
 def render_job_mdx(tpl: dict, f: dict) -> str:
-    """Build the finished content/jobs/<slug>.mdx string."""
     fm = tpl["fm"]
-    labels = f["labels"]
+    tok = f["tokens"]
     locales = {}
     for loc, ov in (fm.get("locales") or {}).items():
-        locales[loc] = {
-            k: _sub_labels(v, labels, loc) for k, v in ov.items()
-        }
+        locales[loc] = {k: _sub(v, tok.get(loc, tok["en"])) for k, v in ov.items()}
     frontmatter = {
         "title": fm.get("title", tpl["roleType"]),
         "station": f["station"],
         "location": f["location"],
-        "employmentType": fm.get("employmentType", "FULL_TIME"),
+        "employmentType": f["employmentType"],
         "datePosted": f["datePosted"],
         "validThrough": f["validThrough"],
-        "baseSalary": fm.get("baseSalary"),
-        "description": _sub_labels(fm.get("description", ""), labels, "en"),
+        "baseSalary": f["baseSalary"],
+        "description": _sub(fm.get("description", ""), tok["en"]),
         "fountainApplyUrl": f["fountainApplyUrl"],
         "source": "fountain",
     }
     if locales:
         frontmatter["locales"] = locales
-    body = _sub_labels(tpl["body"], labels, "en").lstrip("\n")
+    body = _sub(tpl["body"], tok["en"]).lstrip("\n")
     yaml_fm = yaml.safe_dump(
         frontmatter, sort_keys=False, allow_unicode=True, default_flow_style=False
     )
@@ -264,7 +274,6 @@ def fetch_openings(from_file: str | None) -> list[dict]:
         with open(from_file, encoding="utf-8") as fh:
             data = json.load(fh)
         return data if isinstance(data, list) else data.get("funnels", data.get("data", []))
-    # Live: reuse the canonical, credentialed platform client.
     if PLATFORM_ROOT not in sys.path:
         sys.path.insert(0, PLATFORM_ROOT)
     from core.services.fountain_client import FountainClient  # type: ignore
@@ -277,25 +286,22 @@ def fetch_openings(from_file: str | None) -> list[dict]:
 # ---------------------------------------------------------------------------
 def _git(*args: str) -> str:
     return subprocess.run(
-        ["git", "-C", REPO_ROOT, *args],
-        check=True,
-        capture_output=True,
-        text=True,
+        ["git", "-C", REPO_ROOT, *args], check=True, capture_output=True, text=True
     ).stdout.strip()
 
 
 def git_commit_push(n_written: int, n_pruned: int, push: bool) -> None:
-    status = _git("status", "--porcelain", "content/jobs")
-    if not status:
+    if not _git("status", "--porcelain", "content/jobs"):
         print("[git] no job changes — nothing to commit")
         return
     _git("add", "content/jobs")
-    msg = (
+    _git(
+        "commit",
+        "-m",
         f"jobs: sync from Fountain ({n_written} live, {n_pruned} pruned)\n\n"
         "Automated by scripts/sync_fountain_jobs.py. Do not hand-edit "
-        "content/jobs/*.mdx (source: fountain)."
+        "content/jobs/*.mdx (source: fountain).",
     )
-    _git("commit", "-m", msg)
     print(f"[git] committed: {n_written} live, {n_pruned} pruned")
     if push:
         _git("push", "origin", "main")
@@ -308,7 +314,7 @@ def git_commit_push(n_written: int, n_pruned: int, push: bool) -> None:
 # Main
 # ---------------------------------------------------------------------------
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser(description="Sync Fountain openings -> content/jobs/*.mdx")
     ap.add_argument("--from-file", help="replay a saved /funnels JSON dump (no network)")
     ap.add_argument("--write", action="store_true", help="write MDX files (default: dry-run)")
     ap.add_argument("--push", action="store_true", help="git commit + push (implies --write)")
@@ -326,27 +332,26 @@ def main() -> int:
     if args.limit:
         openings = openings[: args.limit]
 
-    active = [op for op in openings if opening_is_active(op)]
-    print(f"[fetch] {len(openings)} openings, {len(active)} active")
+    publishable = [op for op in openings if should_publish(op)]
+    print(f"[fetch] {len(openings)} openings, {len(publishable)} publishable "
+          "(active + hiring + not private/internal)")
 
     written_slugs: set[str] = set()
     plan = []
-    for op in active:
-        f = opening_to_fields(op, now)
-        tpl = match_role(f["fountainTitle"], templates)
+    for op in publishable:
+        tpl = match_role(op, templates)
         if not tpl:
-            plan.append(("skip-no-template", f["fountainTitle"], f["slug"]))
+            plan.append(("skip-no-template", op.get("title", "?")[:40], "—"))
             continue
+        f = opening_to_fields(op, tpl["fm"], now)
         written_slugs.add(f["slug"])
-        path = os.path.join(JOBS_DIR, f"{f['slug']}.mdx")
-        mdx = render_job_mdx(tpl, f)
         plan.append(("write", tpl["roleType"], f["slug"]))
         if write:
             os.makedirs(JOBS_DIR, exist_ok=True)
-            with open(path, "w", encoding="utf-8") as fh:
-                fh.write(mdx)
+            with open(os.path.join(JOBS_DIR, f"{f['slug']}.mdx"), "w", encoding="utf-8") as fh:
+                fh.write(render_job_mdx(tpl, f))
 
-    # Prune: fountain-sourced job files no longer backed by an active opening.
+    # Prune fountain-sourced job files no longer backed by a publishable opening.
     pruned = []
     for name in sorted(os.listdir(JOBS_DIR)) if os.path.isdir(JOBS_DIR) else []:
         if not name.endswith(".mdx"):
@@ -364,11 +369,11 @@ def main() -> int:
 
     print("\n=== PLAN ===")
     for action, role, slug in plan:
-        print(f"  {action:20} {role:22} {slug}")
+        print(f"  {action:20} {role:24} {slug}")
     for slug in pruned:
-        print(f"  {'prune':20} {'(closed)':22} {slug}")
-    print(f"=== {'WROTE' if write else 'DRY-RUN'}: "
-          f"{len(written_slugs)} live, {len(pruned)} pruned ===")
+        print(f"  {'prune':20} {'(closed/hidden)':24} {slug}")
+    print(f"=== {'WROTE' if write else 'DRY-RUN'}: {len(written_slugs)} live, "
+          f"{len(pruned)} pruned ===")
 
     if write:
         git_commit_push(len(written_slugs), len(pruned), args.push)
