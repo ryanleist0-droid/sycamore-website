@@ -6,13 +6,55 @@
 import type { Job, Locale } from "./jobs";
 import { jobDescription, jobTitle } from "./jobs";
 
+const ORIGIN = "https://sycamore-logistics.com";
+
+// Type is Organization, NOT LocalBusiness, and we publish NO street address.
+// Sycamore is colocated inside an Amazon delivery station — there is no
+// independent, customer-facing storefront and no verified Google Business
+// Profile. A LocalBusiness + PostalAddress makes a physical-location claim
+// Google can't corroborate (and the station street address belongs to Amazon),
+// which is a worse trust signal than omitting it. The hiring-discovery play is
+// Google for Jobs via per-role JobPosting (see buildJobPostingJsonLd), which
+// needs no GBP. Upgrade to LocalBusiness + exact NAP once a GBP is verified.
 export const ORGANIZATION_JSON_LD = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": `${ORIGIN}/#organization`,
   name: "Sycamore Logistics",
-  url: "https://sycamore-logistics.com",
-  // Logo / sameAs / contactPoint / address all land in D2 alongside the
-  // proof-points conversation.
+  legalName: "Sycamore Logistics LLC",
+  url: ORIGIN,
+  logo: `${ORIGIN}/images/sycamore_logo_horizontal_color.png`,
+  image: `${ORIGIN}/og/og-default.jpg`,
+  description:
+    "Small, local, veteran-owned Amazon Delivery Service Partner based in the " +
+    "Hagerstown, MD area, serving Maryland, West Virginia, Virginia, and Pennsylvania.",
+  telephone: "+1-240-707-1802",
+  foundingDate: "2020",
+  // Locality only (no street / ZIP) — matches the site copy's "Hagerstown, MD
+  // area" and gives geographic context without an unverifiable storefront claim.
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Hagerstown",
+    addressRegion: "MD",
+    addressCountry: "US",
+  },
+  areaServed: [
+    { "@type": "State", name: "Maryland" },
+    { "@type": "State", name: "West Virginia" },
+    { "@type": "State", name: "Virginia" },
+    { "@type": "State", name: "Pennsylvania" },
+  ],
+  numberOfEmployees: { "@type": "QuantitativeValue", minValue: 100 },
+  sameAs: ["https://www.facebook.com/sycamorelogistics/"],
+  // No public inbox — inquiries route through the on-site contact form.
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer service",
+    telephone: "+1-240-707-1802",
+    url: `${ORIGIN}/en/contact`,
+    areaServed: "US",
+    availableLanguage: ["en"],
+  },
 };
 
 /**

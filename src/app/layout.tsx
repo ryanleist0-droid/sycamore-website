@@ -17,6 +17,27 @@ export const metadata: Metadata = {
   },
   description:
     "Sycamore Logistics — Amazon Delivery Service Partner. Technology focused, community driven.",
+  // Social share defaults. Per-page title/description flow into og:/twitter:
+  // automatically; the image + site chrome below apply site-wide. Relative
+  // image paths resolve against metadataBase.
+  openGraph: {
+    type: "website",
+    siteName: "Sycamore Logistics",
+    locale: "en_US",
+    url: "/",
+    images: [
+      {
+        url: "/og/og-default.jpg",
+        width: 1200,
+        height: 630,
+        alt: "A Sycamore Logistics delivery associate in an Amazon Prime van",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og/og-default.jpg"],
+  },
 };
 
 /**
