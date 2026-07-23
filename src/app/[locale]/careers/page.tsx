@@ -33,7 +33,7 @@ export async function generateMetadata({
 }
 
 async function loadCareersMdx(locale: Locale): Promise<{
-  frontmatter: { title: string; description?: string };
+  frontmatter: { title: string; description?: string; tagline?: string };
   body: string;
 } | null> {
   const candidates = [locale, "en"] as const;
@@ -71,7 +71,16 @@ export default async function CareersIndexPage({
         variant="inner"
         eyebrow={locale === "es" ? "TRABAJA CON NOSOTROS" : "CAREERS"}
         title={page.frontmatter.title}
-        subtitle={page.frontmatter.description}
+        subtitle={
+          <>
+            {page.frontmatter.description}
+            {page.frontmatter.tagline && (
+              <strong className="block mt-2 font-bold text-text-primary">
+                {page.frontmatter.tagline}
+              </strong>
+            )}
+          </>
+        }
         image="/images/sycamore_operations_004.jpg"
         imageAlt={
           locale === "es"

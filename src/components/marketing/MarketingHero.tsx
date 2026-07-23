@@ -40,7 +40,7 @@ export function MarketingHero({
   variant: "home" | "inner";
   eyebrow?: string;
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   ctaPrimary?: CTA;
   ctaSecondary?: CTA;
   right?: React.ReactNode;
