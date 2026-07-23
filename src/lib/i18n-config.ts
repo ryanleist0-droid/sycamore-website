@@ -29,4 +29,4 @@
  * `next-intl` routing config and the `es` content files stay untouched
  * across the gate.
  */
-export const SPANISH_ENABLED = false;
+export const SPANISH_ENABLED = true;

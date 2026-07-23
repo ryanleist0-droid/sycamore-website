@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { SPANISH_ENABLED } from "@/lib/i18n-config";
 
 const BASE_URL = "https://sycamore-logistics.com";
 
@@ -41,21 +42,19 @@ const AI_TRAINING_BOTS = [
   "ImagesiftBot",
 ] as const;
 
-// Spanish-locale gate (2026-05-15) — see src/components/chrome/LocaleSwitcher.tsx
-// for the full reversal procedure. Spanish content is stub-only across the
-// site; Disallow keeps Google from indexing partial Spanish pages while the
-// routes themselves stay reachable. To re-enable Spanish, drop the
-// `/es/` disallow entries from both the Googlebot rule and the `*` rule.
+// Spanish-locale gate — tied to SPANISH_ENABLED (src/lib/i18n-config.ts), the
+// single source of truth also used by the sitemap, hreflang, and LocaleSwitcher.
+// While Spanish is disabled, `/es/` is Disallowed so Google doesn't index
+// stub pages (the routes stay reachable). Flipping SPANISH_ENABLED to true
+// removes the disallow here automatically — no manual edit to this file.
+const esDisallow = SPANISH_ENABLED ? {} : { disallow: "/es/" };
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      { userAgent: "Googlebot", allow: "/", disallow: "/es/" },
-      ...AI_SEARCH_BOTS.map((userAgent) => ({
-        userAgent,
-        allow: "/",
-        disallow: "/es/",
-      })),
-      { userAgent: "*", allow: "/", disallow: "/es/" },
+      { userAgent: "Googlebot", allow: "/", ...esDisallow },
+      ...AI_SEARCH_BOTS.map((userAgent) => ({ userAgent, allow: "/", ...esDisallow })),
+      { userAgent: "*", allow: "/", ...esDisallow },
       ...AI_TRAINING_BOTS.map((userAgent) => ({ userAgent, disallow: "/" })),
     ],
     sitemap: `${BASE_URL}/sitemap.xml`,
