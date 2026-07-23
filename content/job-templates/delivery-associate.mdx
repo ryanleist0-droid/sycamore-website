@@ -1,0 +1,66 @@
+---
+# ─────────────────────────────────────────────────────────────────────────
+# EDITORIAL TEMPLATE — role type "delivery-associate"
+# ─────────────────────────────────────────────────────────────────────────
+# This is the hand-authored, reusable layer for delivery-associate openings.
+# scripts/sync_fountain_jobs.py reads it, overlays the Fountain-driven fields
+# for each live opening — station, location, datePosted, validThrough,
+# fountainApplyUrl, slug — and writes the finished content/jobs/<slug>.mdx.
+#
+# EDIT COPY HERE. Never edit the generated content/jobs/*.mdx files
+# (source: fountain) — the sync overwrites them every run.
+#
+# Tokens substituted at sync time (per locale):
+#   {{LOCATION_LABEL}} — the opening's display location, e.g. "Hagerstown, MD
+#                        area" (en) / "área de Hagerstown, MD" (es).
+#
+# matchTitlePatterns: lowercase substrings; a Fountain opening whose title
+# matches ANY of them maps to this role type. First template to match wins
+# (see ROLE_TEMPLATE_ORDER in the sync script).
+roleType: "delivery-associate"
+matchTitlePatterns:
+  - "delivery"
+  - "driver"
+  - "associate"
+title: "Delivery Associate"
+employmentType: "FULL_TIME"
+baseSalary:
+  minValue: 20.50
+  currency: "USD"
+  unitText: "HOUR"
+description: "Full-time Amazon Delivery Associate, $20.50/hour and up to start, full benefits, out of our {{LOCATION_LABEL}} station."
+locales:
+  es:
+    title: "Asociado de Entrega"
+    description: "Asociado de Entrega de Amazon a tiempo completo, $20.50/hora y más para empezar, beneficios completos, desde nuestra estación en el {{LOCATION_LABEL}}."
+---
+
+## Looking for a job where you stay active, work independently, and make great money?
+
+We're hiring Delivery Associates to join our fast-growing team. If you like being on the move, working on your own, and making an impact every day — this job is for you.
+
+## The role
+
+<InlineImage src="/images/sycamore_operations_013.jpg" alt="Sycamore Delivery Associate loading the van at the station" />
+
+Full-time Delivery Associate based out of our {{LOCATION_LABEL}} station. You'll drive an Amazon delivery van on daily routes through Maryland, West Virginia, Virginia, and Pennsylvania, getting packages to households and businesses across the region.
+
+## Pay and benefits
+
+- **$20.50 / hour and up** to start
+- **Paid time off** accruing from your first day
+- **Health, dental, and vision insurance**
+- **401(k) with 4% employer match**
+- **Tuition assistance** up to $5,250 per year
+- **Supplemental insurance**: critical illness, AD&D, and voluntary life
+- **Real advancement** — every leader at Sycamore started as a driver, and we promote from within
+
+## About Sycamore
+
+<InlineImage src="/images/sycamore_operations_004.jpg" alt="Sycamore manager and driver working together during a route" />
+
+Sycamore Logistics is a six-year-old Amazon Delivery Service Partner. We operate out of two stations in the Hagerstown, MD area with over 100 delivery associates on the road every day. Safety first. Technology enhanced. Community organization.
+
+## How to apply
+
+Hit **Apply** below and you'll go straight to our application on Fountain. The whole process takes about 10 minutes — designed to respect your time.

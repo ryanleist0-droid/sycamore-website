@@ -50,6 +50,13 @@ export type JobFrontmatter = {
   description: string;
   fountainApplyUrl: string;
   locales?: Partial<Record<Locale, JobLocaleOverride>>;
+  /**
+   * Provenance. `"fountain"` = written by scripts/sync_fountain_jobs.py from a
+   * live Fountain opening (auto-created, auto-pruned when the opening closes —
+   * DO NOT hand-edit; changes are overwritten on the next sync). `"manual"`
+   * (default when absent) = hand-authored; the sync never touches or prunes it.
+   */
+  source?: "fountain" | "manual";
 };
 
 export type Job = JobFrontmatter & {
@@ -112,7 +119,7 @@ async function loadJobFile(filename: string, slug: string): Promise<Job | null> 
       throw new Error(`Job ${slug} is missing required frontmatter field: ${k}`);
     }
   }
-  return { ...fm, slug, body: parsed.content };
+  return { source: "manual", ...fm, slug, body: parsed.content };
 }
 
 /** Locale-aware title — falls back to the canonical English title. */
