@@ -139,6 +139,26 @@ def should_publish(op: dict) -> bool:
     )
 
 
+# The four publish gates, in the same order should_publish() applies them.
+# Kept as data so --diagnose can name WHICH gate rejected an opening: the sync
+# log otherwise prints only survivors, so a station that never appears on the
+# site looks identical to a station Fountain never sent.
+_PUBLISH_GATES = (
+    ("active", lambda op: bool(op.get("active")), "not active in Fountain"),
+    ("is_hiring_funnel", lambda op: bool(op.get("is_hiring_funnel", True)),
+     "is_hiring_funnel=false (funnel not marked as hiring)"),
+    ("is_private", lambda op: not op.get("is_private", False),
+     "is_private=true (hidden from the public board)"),
+    ("is_internal_funnel", lambda op: not op.get("is_internal_funnel", False),
+     "is_internal_funnel=true (internal-only funnel)"),
+)
+
+
+def blocking_reasons(op: dict) -> list[str]:
+    """Which publish gates this opening fails. Empty list == publishable."""
+    return [why for _, ok, why in _PUBLISH_GATES if not ok(op)]
+
+
 def _slug_from_apply_url(url: str, fallback: str) -> str:
     m = re.search(r"/opening/([^/?#]+)", url or "")
     if m:
@@ -324,6 +344,52 @@ def git_commit_push(n_written: int, n_pruned: int, push: bool) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Diagnose
+# ---------------------------------------------------------------------------
+def diagnose(openings: list[dict], templates: list[dict]) -> int:
+    """Print one line per Fountain opening with the reason it does or does not
+    reach the site. Read-only: writes no files and runs no git."""
+    print(f"[diagnose] {len(openings)} openings from Fountain\n")
+    for op in sorted(openings, key=lambda o: str((o.get("location") or {}).get("name", ""))):
+        station = re.sub(
+            r"\s*-\s*SYCM\b", "", (op.get("location") or {}).get("name", "")
+        ).strip() or "(no location)"
+        title = (op.get("title") or "?")
+        reasons = blocking_reasons(op)
+        if reasons:
+            verdict = "BLOCKED"
+            detail = "; ".join(reasons)
+        else:
+            tpl = match_role(op, templates)
+            if tpl:
+                verdict = "PUBLISH"
+                detail = (
+                    f"template={tpl['roleType']} "
+                    f"slug={_slug_from_apply_url(op.get('apply_url',''), title)}"
+                )
+            else:
+                verdict = "NO TEMPLATE"
+                detail = (
+                    "passes every publish gate but no content/job-templates/*.mdx "
+                    "matchTitlePatterns matched "
+                    f"{title!r} / "
+                    f"{(op.get('position') or {}).get('name','')!r}"
+                )
+        print(f"  {station:<12} {verdict:<12} {title[:44]:<44} {detail}")
+        flags = " ".join(
+            f"{name}={op.get(name, '(absent)')!r}" for name, _, _ in _PUBLISH_GATES
+        )
+        print(f"  {'':<12} {'':<12} flags: {flags}")
+    n_pub = sum(1 for op in openings if not blocking_reasons(op))
+    print(
+        f"\n[diagnose] {n_pub} of {len(openings)} pass the publish gates "
+        "(active + hiring + not private/internal)"
+    )
+    print("(diagnose — nothing written, no git)")
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main() -> int:
@@ -332,6 +398,12 @@ def main() -> int:
     ap.add_argument("--write", action="store_true", help="write MDX files (default: dry-run)")
     ap.add_argument("--push", action="store_true", help="git commit + push (implies --write)")
     ap.add_argument("--limit", type=int, default=0, help="cap openings processed (debug)")
+    ap.add_argument(
+        "--diagnose",
+        action="store_true",
+        help="print every opening with its publish-gate verdict and template "
+             "match, then exit. Never writes files or touches git.",
+    )
     args = ap.parse_args()
     write = args.write or args.push
     now = datetime.now(timezone.utc)
@@ -344,6 +416,9 @@ def main() -> int:
     openings = fetch_openings(args.from_file)
     if args.limit:
         openings = openings[: args.limit]
+
+    if args.diagnose:
+        return diagnose(openings, templates)
 
     publishable = [op for op in openings if should_publish(op)]
     print(f"[fetch] {len(openings)} openings, {len(publishable)} publishable "
