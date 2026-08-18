@@ -380,6 +380,22 @@ def diagnose(openings: list[dict], templates: list[dict]) -> int:
             f"{name}={op.get(name, '(absent)')!r}" for name, _, _ in _PUBLISH_GATES
         )
         print(f"  {'':<12} {'':<12} flags: {flags}")
+        # Show the parsed address + market label even for BLOCKED openings. A
+        # malformed Fountain address (e.g. "PA 18202" as one comma-part, which
+        # defeats the ZIP/state split) collapses city+state to "" and renders
+        # "your area,  area" with an empty JobPosting jobLocation. That is
+        # invisible while a publish gate hides the opening, and would ship the
+        # moment the gate opens — so surface it here, not after go-live.
+        raw_addr = op.get("address") or ""
+        addr = _parse_address(raw_addr)
+        label = _labels(addr["city"], addr["state"], _pay(op), {})["displayName"]
+        warn = "" if (addr["city"] and addr["state"]) else "   <-- UNPARSED ADDRESS"
+        print(f"  {'':<12} {'':<12} address: {raw_addr!r}")
+        print(
+            f"  {'':<12} {'':<12} parsed: city={addr['city']!r} "
+            f"state={addr['state']!r} zip={addr['postalCode']!r} "
+            f"label={label!r}{warn}"
+        )
     n_pub = sum(1 for op in openings if not blocking_reasons(op))
     print(
         f"\n[diagnose] {n_pub} of {len(openings)} pass the publish gates "
