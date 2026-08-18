@@ -64,6 +64,7 @@ PLATFORM_ROOT = "/home/coreadmin/sycamore-platform"
 # never expires out of Google for Jobs while it's still open on Fountain.
 # (Overridden by the opening's application_deadline when Fountain sets one.)
 VALIDITY_WINDOW_DAYS = 30
+_DIAG_NOW = None  # set by diagnose(); one fixed clock per pass
 COUNTRY_DEFAULT = "US"
 _UNIT = {"hour": "HOUR", "day": "DAY", "week": "WEEK", "month": "MONTH", "year": "YEAR"}
 _JOB_HOURS = {"full_time": "FULL_TIME", "part_time": "PART_TIME"}
@@ -346,9 +347,35 @@ def git_commit_push(n_written: int, n_pruned: int, push: bool) -> None:
 # ---------------------------------------------------------------------------
 # Diagnose
 # ---------------------------------------------------------------------------
+# Renaming a funnel title to a clean public title is the intended design
+# ("DBA7 - SYCM - Delivery Experience Specialist" -> "Delivery Associate"), so a
+# plain title mismatch is not a defect. What IS a defect is a qualifier in the
+# Fountain title that changes the KIND of role and is not reflected in the
+# template the opening matched — a seasonal role advertised as permanent, or a
+# helper role advertised (and priced) as a full Delivery Associate.
+_ROLE_QUALIFIERS = (
+    "seasonal", "temporary", "temp", "part-time", "part time", "helper",
+    "lead", "supervisor", "manager", "dispatcher", "warehouse", "cdl",
+    "trainer", "intern", "weekend", "overnight",
+)
+
+
+def role_qualifier_warnings(tpl: dict, fountain_title: str) -> list[str]:
+    """Qualifiers present in the Fountain title but absent from the template's
+    public title and role type — i.e. meaning the public ad would drop."""
+    hay = (fountain_title or "").lower()
+    covered = (
+        f"{tpl['fm'].get('title', '')} {tpl['roleType']} "
+        f"{' '.join(tpl['patterns'])}"
+    ).lower()
+    return [q for q in _ROLE_QUALIFIERS if q in hay and q not in covered]
+
+
 def diagnose(openings: list[dict], templates: list[dict]) -> int:
     """Print one line per Fountain opening with the reason it does or does not
     reach the site. Read-only: writes no files and runs no git."""
+    global _DIAG_NOW
+    _DIAG_NOW = datetime.now(timezone.utc)
     print(f"[diagnose] {len(openings)} openings from Fountain\n")
     for op in sorted(openings, key=lambda o: str((o.get("location") or {}).get("name", ""))):
         station = re.sub(
@@ -396,6 +423,31 @@ def diagnose(openings: list[dict], templates: list[dict]) -> int:
             f"state={addr['state']!r} zip={addr['postalCode']!r} "
             f"label={label!r}{warn}"
         )
+        # "What would go public if this gate opened." A blocked opening is one
+        # Fountain toggle away from being a live job ad, so the risky fields are
+        # worth seeing BEFORE the toggle: the template supplies the public title
+        # and a fallback wage, so an opening whose real title/pay differ from the
+        # template it matched would publish a wrong ad rather than no ad.
+        tpl_preview = match_role(op, templates)
+        if tpl_preview:
+            fp = opening_to_fields(op, tpl_preview["fm"], _DIAG_NOW)
+            wage_src = "fountain" if _pay(op) else "TEMPLATE FALLBACK"
+            sal = fp["baseSalary"] or {}
+            rng = f"{sal.get('minValue')}"
+            if sal.get("maxValue"):
+                rng += f"-{sal['maxValue']}"
+            quals = role_qualifier_warnings(tpl_preview, title)
+            title_warn = (
+                f"   <-- DROPS ROLE QUALIFIER(S): {', '.join(quals)}"
+                if quals else ""
+            )
+            print(
+                f"  {'':<12} {'':<12} would publish as: "
+                f"{tpl_preview['fm'].get('title')!r} "
+                f"{fp['employmentType']} "
+                f"{rng} {sal.get('currency','')}/{sal.get('unitText','')} "
+                f"(wage from {wage_src}){title_warn}"
+            )
     n_pub = sum(1 for op in openings if not blocking_reasons(op))
     print(
         f"\n[diagnose] {n_pub} of {len(openings)} pass the publish gates "
