@@ -1,0 +1,59 @@
+---
+# ─────────────────────────────────────────────────────────────────────────
+# EDITORIAL TEMPLATE — role type "seasonal-driver"
+# ─────────────────────────────────────────────────────────────────────────
+# ⚠ EDITORIAL REVIEW OWED (Ryan). The structure, guards and matching are
+# verified; the COPY below is a first draft adapted from delivery-associate.
+# Edit freely — this file is hand-authored and the sync never overwrites it.
+#
+# Deliberate design choices, do not "fix" without reading:
+#
+#  matchPriority: 10  — runs BEFORE delivery-associate (priority 100), whose
+#    patterns (delivery/driver/associate) match every funnel title we have. On
+#    plain alphabetical order this template would never win, and a seasonal role
+#    would publish as a permanent "Delivery Associate".
+#
+#  NO baseSalary  — intentional. Seasonal pay is not the standard DA rate, so
+#    there is no safe fallback: the sync REQUIRES a real opening_pay_rate from
+#    Fountain and refuses to publish without one (SKIP-NO-WAGE, loud on stderr).
+#    Adding a baseSalary here re-enables a guessed public wage. Don't.
+#
+#  employmentTypeOverride  — Fountain's job_hours only says full/part time, so a
+#    seasonal role reports FULL_TIME and would be advertised as permanent.
+roleType: "seasonal-driver"
+matchPriority: 10
+matchTitlePatterns:
+  - "seasonal"
+title: "Seasonal Package Delivery Driver"
+employmentTypeOverride: "TEMPORARY"
+description: "Seasonal Amazon package delivery driver, ${{PAY_MIN}}/hour, out of our {{LOCATION_LABEL}} station. Temporary role through the peak delivery season."
+locales:
+  es:
+    title: "Conductor de Entrega de Paquetes de Temporada"
+    description: "Conductor de entrega de paquetes de Amazon de temporada, ${{PAY_MIN}}/hora, desde nuestra estación en el {{LOCATION_LABEL}}. Puesto temporal durante la temporada alta de entregas."
+---
+
+## Seasonal work, real pay, and a fast start
+
+We're hiring **Seasonal Package Delivery Drivers** for the peak delivery season out of our {{LOCATION_LABEL}} station. This is a temporary role — a straightforward way to earn through the busy months, with a short application and a quick start.
+
+## The role
+
+You'll drive an Amazon delivery van on daily routes, getting packages to households and businesses across the region. Full training is provided; no prior delivery experience is required.
+
+- **${{PAY_MIN}} / hour**
+- **Temporary, seasonal position** through the peak delivery season
+- Full training provided — no delivery experience needed
+- Consistent daily routes out of one station
+
+## Strong seasonal performers are how we hire
+
+Seasonal isn't a dead end here. Every leader at Sycamore started as a driver, and we look to our seasonal drivers first when permanent routes open up.
+
+## About Sycamore
+
+Sycamore Logistics is a six-year-old Amazon Delivery Service Partner. Safety first. Technology enhanced. Community organization.
+
+## How to apply
+
+Hit **Apply** below and you'll go straight to our application on Fountain. The whole process takes about 10 minutes — designed to respect your time.

@@ -110,21 +110,34 @@ def load_templates() -> list[dict]:
             {
                 "roleType": fm.get("roleType") or name[:-4],
                 "patterns": [p.lower() for p in fm.get("matchTitlePatterns", [])],
+                # Lower runs FIRST. Order by SPECIFICITY, never alphabetically:
+                # delivery-associate's patterns (delivery/driver/associate) match
+                # every funnel title we have, so sorted-by-name it would win over
+                # seasonal-driver and delivery-helper and rename those roles.
+                # The broad template is an explicit last-resort fallback.
+                "priority": int(fm.get("matchPriority", 100)),
                 "fm": fm,
                 "body": body,
             }
         )
+    out.sort(key=lambda t: (t["priority"], t["roleType"]))
     return out
+
+
+def match_roles_all(op: dict, templates: list[dict]) -> list[dict]:
+    """Every template whose patterns hit, in specificity order. More than one
+    hit is normal (the broad fallback overlaps the specific ones) — the caller
+    takes the first, and --diagnose surfaces the rest so an unintended overlap
+    is visible rather than silently resolved."""
+    hay = f"{op.get('title', '')} {(op.get('position') or {}).get('name', '')}".lower()
+    return [t for t in templates if any(p in hay for p in t["patterns"])]
 
 
 def match_role(op: dict, templates: list[dict]) -> dict | None:
     """Match on the opening title + position name (the delivery signal lives in
-    one or the other)."""
-    hay = f"{op.get('title', '')} {(op.get('position') or {}).get('name', '')}".lower()
-    for tpl in templates:
-        if any(p in hay for p in tpl["patterns"]):
-            return tpl
-    return None
+    one or the other). Most specific template wins — see load_templates()."""
+    hits = match_roles_all(op, templates)
+    return hits[0] if hits else None
 
 
 # ---------------------------------------------------------------------------
@@ -249,7 +262,10 @@ def opening_to_fields(op: dict, tpl_fm: dict, now: datetime) -> dict:
         "slug": slug,
         "station": station,
         "location": {**addr, "displayName": _labels(addr["city"], addr["state"], pay, tpl_fm)["displayName"]},
-        "employmentType": _employment_type(op),
+        # Fountain's job_hours only distinguishes full/part time, so a seasonal
+        # role reports FULL_TIME and would be advertised as permanent. A template
+        # may override it for the whole role type.
+        "employmentType": tpl_fm.get("employmentTypeOverride") or _employment_type(op),
         "baseSalary": pay or tpl_fm.get("baseSalary"),
         "datePosted": date_posted,
         "validThrough": valid_through,
@@ -428,7 +444,14 @@ def diagnose(openings: list[dict], templates: list[dict]) -> int:
         # worth seeing BEFORE the toggle: the template supplies the public title
         # and a fallback wage, so an opening whose real title/pay differ from the
         # template it matched would publish a wrong ad rather than no ad.
-        tpl_preview = match_role(op, templates)
+        hits = match_roles_all(op, templates)
+        tpl_preview = hits[0] if hits else None
+        if len(hits) > 1:
+            print(
+                f"  {'':<12} {'':<12} templates matched: "
+                + ", ".join(f"{t['roleType']}(p{t['priority']})" for t in hits)
+                + "  -> most specific wins"
+            )
         if tpl_preview:
             fp = opening_to_fields(op, tpl_preview["fm"], _DIAG_NOW)
             wage_src = "fountain" if _pay(op) else "TEMPLATE FALLBACK"
@@ -441,13 +464,20 @@ def diagnose(openings: list[dict], templates: list[dict]) -> int:
                 f"   <-- DROPS ROLE QUALIFIER(S): {', '.join(quals)}"
                 if quals else ""
             )
-            print(
-                f"  {'':<12} {'':<12} would publish as: "
-                f"{tpl_preview['fm'].get('title')!r} "
-                f"{fp['employmentType']} "
-                f"{rng} {sal.get('currency','')}/{sal.get('unitText','')} "
-                f"(wage from {wage_src}){title_warn}"
-            )
+            if not fp["baseSalary"]:
+                print(
+                    f"  {'':<12} {'':<12} would NOT publish: no opening_pay_rate "
+                    f"in Fountain and template {tpl_preview['roleType']!r} declares "
+                    "no baseSalary fallback  <-- SET THE PAY RATE IN FOUNTAIN"
+                )
+            else:
+                print(
+                    f"  {'':<12} {'':<12} would publish as: "
+                    f"{tpl_preview['fm'].get('title')!r} "
+                    f"{fp['employmentType']} "
+                    f"{rng} {sal.get('currency','')}/{sal.get('unitText','')} "
+                    f"(wage from {wage_src}){title_warn}"
+                )
     n_pub = sum(1 for op in openings if not blocking_reasons(op))
     print(
         f"\n[diagnose] {n_pub} of {len(openings)} pass the publish gates "
@@ -500,6 +530,25 @@ def main() -> int:
             plan.append(("skip-no-template", op.get("title", "?")[:40], "—"))
             continue
         f = opening_to_fields(op, tpl["fm"], now)
+        # Refuse to publish a wage we do not actually know. baseSalary is
+        # Fountain's opening_pay_rate, falling back to the template's. A template
+        # that declares no fallback (seasonal, helper — roles whose pay is not the
+        # standard DA rate) therefore REQUIRES a real rate from Fountain, and a
+        # missing one means no ad rather than an ad at another role's wage.
+        # Templates that do declare a fallback can never reach this branch, so the
+        # live delivery-associate listing cannot be pruned by an empty rate.
+        # Loud on stderr: a silent fail-closed skip is indistinguishable from
+        # "Fountain never sent it", which is the exact blind spot --diagnose exists
+        # to close.
+        if not f["baseSalary"]:
+            plan.append(("SKIP-NO-WAGE", tpl["roleType"], f["slug"]))
+            sys.stderr.write(
+                f"WARNING: {op.get('title','?')!r} matched template "
+                f"{tpl['roleType']!r} but has no opening_pay_rate in Fountain and "
+                "that template declares no baseSalary fallback — NOT published. "
+                "Set the pay rate on the Fountain opening.\n"
+            )
+            continue
         written_slugs.add(f["slug"])
         plan.append(("write", tpl["roleType"], f["slug"]))
         if write:

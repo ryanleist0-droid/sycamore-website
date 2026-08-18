@@ -18,6 +18,14 @@
 # matches ANY of them maps to this role type. First template to match wins
 # (see ROLE_TEMPLATE_ORDER in the sync script).
 roleType: "delivery-associate"
+# LAST-RESORT FALLBACK (highest number runs last). The patterns below match
+# essentially every funnel title Sycamore has, so this template must be
+# evaluated AFTER every more specific one — otherwise a seasonal driver or a
+# delivery helper silently publishes as a permanent Delivery Associate at the
+# rate below. Specific templates use matchPriority 10. Do not narrow these
+# patterns to fix an overlap; give the specific role its own template instead,
+# so the currently-live DBA7 listing keeps matching exactly as it does today.
+matchPriority: 100
 matchTitlePatterns:
   - "delivery"
   - "driver"
