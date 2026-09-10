@@ -16,9 +16,18 @@ import { ContactFormSuccess } from "./ContactFormSuccess";
  * destination this form ever talks to, and it's not configurable per
  * environment (preview deploys hit the same endpoint per the marketing-origin
  * CORS allowlist on the Flask side).
+ *
+ * 2026-09-10: moved from allium.sycamore-logistics.com to app.alliumproject.com.
+ * Allium's hostnames are leaving that domain; this site's own domain is NOT, so
+ * this one line is the entire Allium surface in this repo — sitemap, robots,
+ * metadataBase and schema origin all legitimately stay sycamore-logistics.com.
+ * CORS is unaffected: the allowlist keys off the BROWSER's origin (this site),
+ * not the endpoint's host, and both hosts were verified to return
+ * access-control-allow-origin for https://careers.sycamore-logistics.com while
+ * refusing an unknown origin.
  */
 
-const CONTACT_ENDPOINT = "https://allium.sycamore-logistics.com/api/contact/submit";
+const CONTACT_ENDPOINT = "https://app.alliumproject.com/api/contact/submit";
 const CATEGORY_VALUES = ["sales", "careers", "press", "other"] as const;
 type Category = (typeof CATEGORY_VALUES)[number];
 
