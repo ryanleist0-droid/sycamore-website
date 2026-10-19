@@ -16,6 +16,8 @@
     "languages": "Idiomas",
     "privacy": "Privacidad",
     "terms": "Términos",
+    "smsPrivacy": "Privacidad de mensajes de texto",
+    "smsTerms": "Términos de mensajes de texto",
     "copyright": "© {year} Sycamore Logistics. Todos los derechos reservados."
   },
   "locale": {

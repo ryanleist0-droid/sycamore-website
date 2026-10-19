@@ -58,6 +58,8 @@ export function MarketingFooter() {
           <ul className="space-y-2 text-[14px]">
             <li><span className="text-text-tertiary cursor-default">{t("privacy")}</span></li>
             <li><span className="text-text-tertiary cursor-default">{t("terms")}</span></li>
+            <li><Link href="/legal/sms-privacy" className="text-text-secondary hover:text-brand-green">{t("smsPrivacy")}</Link></li>
+            <li><Link href="/legal/sms-terms" className="text-text-secondary hover:text-brand-green">{t("smsTerms")}</Link></li>
           </ul>
         </div>
 
