@@ -19,7 +19,7 @@ export async function generateMetadata({
   const locale: Locale = localeParam === "es" ? "es" : "en";
   const page = await loadMarketingPage(locale, "legal/sms-terms");
   return {
-    title: page?.frontmatter.title ?? "Text Messaging Terms and Conditions",
+    title: page?.frontmatter.title ?? "Terms & Conditions (Text Messaging)",
     description: page?.frontmatter.description,
     alternates: {
       canonical: `/${locale}/legal/sms-terms`,

@@ -19,7 +19,7 @@ export async function generateMetadata({
   const locale: Locale = localeParam === "es" ? "es" : "en";
   const page = await loadMarketingPage(locale, "legal/sms-privacy");
   return {
-    title: page?.frontmatter.title ?? "Text Messaging Privacy Policy",
+    title: page?.frontmatter.title ?? "Privacy Policy (Text Messaging)",
     description: page?.frontmatter.description,
     alternates: {
       canonical: `/${locale}/legal/sms-privacy`,
