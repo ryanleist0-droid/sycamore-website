@@ -20,6 +20,8 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
+      - name: python deps (the script imports yaml; terminator67 had the system PyYAML)
+        run: python3 -m pip install --quiet pyyaml
       - name: credentials (env + the unit's EnvironmentFile shape; values never echoed)
         env:
           FOUNTAIN_CLIENT_ID: ${{ secrets.FOUNTAIN_CLIENT_ID }}
