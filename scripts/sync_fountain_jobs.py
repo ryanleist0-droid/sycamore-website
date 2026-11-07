@@ -326,7 +326,10 @@ def fetch_openings(from_file: str | None) -> list[dict]:
         return data if isinstance(data, list) else data.get("funnels", data.get("data", []))
     if PLATFORM_ROOT not in sys.path:
         sys.path.insert(0, PLATFORM_ROOT)
-    from core.services.fountain_client import FountainClient  # type: ignore
+    try:
+        from core.services.fountain_client import FountainClient  # type: ignore  (platform checkout on PYTHONPATH)
+    except ImportError:
+        from fountain_client import FountainClient  # vendored copy beside this script (GitHub runner)
 
     return FountainClient().funnels()
 
