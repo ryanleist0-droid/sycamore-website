@@ -1,31 +1,16 @@
-# Adding a new job
+# Adding a job
 
-D1 stub. D3 fills this with the seed DBA7 role + step-by-step runbook for Cowork's future use.
+Jobs are not edited in this repo. They come live from Allium, Sycamore's hiring platform:
 
-Target shape (subject to D3 confirmation):
+1. In Allium, open **Applicants → Openings → New opening**: pick the building and role, write the title,
+   summary and description (Spanish optional), then **Publish**.
+2. Within about five minutes the opening is on `/careers` and has its own page at `/careers/<slug>`,
+   with Google-for-Jobs data, and its Apply button opens the Allium application for that building.
+3. **Close** the opening in Allium to take it down (its page then returns 404, which de-lists it).
 
-1. Create `content/jobs/<slug>.mdx` with frontmatter:
+Pay and shift lines come from the building's approved **Job facts** in Allium; until they are approved
+the listing shows no pay.
 
-   ```yaml
-   ---
-   title: "..."
-   station: "DBA7"
-   location: { city: "...", state: "...", postalCode: "..." }
-   employmentType: "FULL_TIME"
-   datePosted: "YYYY-MM-DD"
-   validThrough: "YYYY-MM-DD"
-   baseSalary: { min: 0, max: 0, currency: "USD", unit: "HOUR" }
-   description: "Brief summary used in careers index card and JobPosting description."
-   fountainApplyUrl: "https://us-4.fountain.com/apply/..."
-   locales:
-     es:
-       title: "..."
-       description: "..."
-   ---
-   ```
-
-2. MDX body holds the full role description (markdown sections like *About the role*, *What you'll do*, etc.).
-
-3. Push to `main`. Vercel deploys; the role appears at `/{en,es}/careers/<slug>` automatically.
-
-4. Validate JobPosting JSON-LD via Google Rich Results Test (or `npm run validate:schema` once D3 adds the local validator).
+Mechanics: `src/lib/jobs.ts` reads `https://app.alliumproject.com/api/jobs` (override with
+`ALLIUM_JOBS_FEED_URL`) and Next re-fetches it every 300 seconds (ISR). The Fountain sync that used to write
+`content/jobs/*.mdx` was retired on 2026-11-12.

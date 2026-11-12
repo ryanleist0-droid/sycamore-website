@@ -97,10 +97,10 @@ function formatMoney(value: number, currency: string, locale: Locale): string {
 }
 
 function unitLabel(
-  u: Job["baseSalary"]["unitText"],
+  u: NonNullable<Job["baseSalary"]>["unitText"],
   locale: Locale,
 ): string {
-  const map: Record<Job["baseSalary"]["unitText"], { en: string; es: string }> = {
+  const map: Record<NonNullable<Job["baseSalary"]>["unitText"], { en: string; es: string }> = {
     HOUR: { en: "/ hour", es: "/ hora" },
     DAY: { en: "/ day", es: "/ día" },
     WEEK: { en: "/ week", es: "/ semana" },

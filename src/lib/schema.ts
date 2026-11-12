@@ -74,10 +74,10 @@ export const ORGANIZATION_JSON_LD = {
  *                       countryCode list when stations expand internationally)
  *   baseSalary        ← MonetaryAmount with QuantitativeValue (minValue,
  *                       optional maxValue, unitText, currency)
- *   directApply       ← true — Fountain is a first-party application form,
+ *   directApply       ← true — the Allium application is a first-party form,
  *                       not a job-board redirect; Google for Jobs uses this
  *                       to bias toward direct-apply listings
- *   applicationContact / url → applicationUrl from MDX fountainApplyUrl
+ *   applicationContact / url → the opening's Allium application URL
  *   identifier        ← PropertyValue with the slug as a stable identifier
  *   inLanguage        ← URL locale
  */
@@ -89,8 +89,8 @@ export function buildJobPostingJsonLd(
   const title = jobTitle(job, locale);
   // Google for Jobs wants the FULL job description (duties, pay, benefits,
   // requirements) as HTML — a short teaser gets under-ranked or filtered.
-  // Prefer the complete descriptionHtml (synced from the Fountain opening);
-  // fall back to the teaser only when it's absent (e.g. hand-authored jobs).
+  // descriptionHtml is built from the Allium opening (summary, description,
+  // and the building's approved pay/schedule facts).
   const description = job.descriptionHtml || jobDescription(job, locale);
 
   return {
@@ -110,6 +110,7 @@ export function buildJobPostingJsonLd(
       "@type": "Place",
       address: {
         "@type": "PostalAddress",
+        ...(job.location.streetAddress ? { streetAddress: job.location.streetAddress } : {}),
         addressLocality: job.location.city,
         addressRegion: job.location.state,
         postalCode: job.location.postalCode,
@@ -120,22 +121,26 @@ export function buildJobPostingJsonLd(
       "@type": "Country",
       name: job.location.country,
     },
-    baseSalary: {
-      "@type": "MonetaryAmount",
-      currency: job.baseSalary.currency,
-      value: {
-        "@type": "QuantitativeValue",
-        minValue: job.baseSalary.minValue,
-        ...(job.baseSalary.maxValue !== undefined
-          ? { maxValue: job.baseSalary.maxValue }
-          : {}),
-        unitText: job.baseSalary.unitText,
-      },
-    },
+    ...(job.baseSalary
+      ? {
+          baseSalary: {
+            "@type": "MonetaryAmount",
+            currency: job.baseSalary.currency,
+            value: {
+              "@type": "QuantitativeValue",
+              minValue: job.baseSalary.minValue,
+              ...(job.baseSalary.maxValue !== undefined
+                ? { maxValue: job.baseSalary.maxValue }
+                : {}),
+              unitText: job.baseSalary.unitText,
+            },
+          },
+        }
+      : {}),
     directApply: true,
     applicationContact: {
       "@type": "ContactPoint",
-      url: job.fountainApplyUrl,
+      url: job.applyUrl,
     },
     url: `${origin}/${locale}/careers/${job.slug}`,
     identifier: {

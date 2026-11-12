@@ -2,8 +2,8 @@ import { getAllJobs, type Locale } from "@/lib/jobs";
 import { JobPostingCard } from "./JobPostingCard";
 
 /**
- * Server component. Loads all `content/jobs/*.mdx` at request time and
- * renders a vertical list of JobPostingCard. Embedded in MDX via
+ * Server component. Loads the open openings from Allium (src/lib/jobs.ts,
+ * refreshed every few minutes) and renders a vertical list of JobPostingCard. Embedded in MDX via
  * `<JobPostingsList />` so the careers index author can place the list
  * wherever in the narrative they want.
  *

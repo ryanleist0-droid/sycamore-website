@@ -5,6 +5,9 @@ import { SPANISH_ENABLED } from "@/lib/i18n-config";
 
 const BASE_URL = "https://sycamore-logistics.com";
 
+// Job pages come live from Allium; refresh the sitemap with them.
+export const revalidate = 300;
+
 /**
  * Spanish-locale gate (2026-05-15) — see
  * src/components/chrome/LocaleSwitcher.tsx for the full reversal procedure.
@@ -68,7 +71,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // Per-role pages, both locales. lastModified tracks the MDX datePosted
+  // Per-role pages, both locales. lastModified tracks the opening's datePosted
   // so re-postings bump the sitemap signal.
   for (const job of jobs) {
     const suffix = `/careers/${job.slug}`;

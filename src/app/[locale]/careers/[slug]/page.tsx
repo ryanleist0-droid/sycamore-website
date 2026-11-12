@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MDXRemote } from "next-mdx-remote/rsc";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { FountainApplyButton } from "@/components/careers/FountainApplyButton";
+import { ApplyButton } from "@/components/careers/ApplyButton";
 import { JobPostingSchema } from "@/components/careers/JobPostingSchema";
-import { InlineImage } from "@/components/marketing/InlineImage";
 import { localeAlternates } from "@/lib/locale-alternates";
 import {
   getAllJobs,
   getJobBySlug,
+  jobApplyUrl,
   jobDescription,
+  jobParagraphs,
   jobTitle,
   type Job,
   type Locale,
@@ -18,6 +18,11 @@ import {
 import { routing } from "@/i18n/routing";
 
 type Params = { locale: string; slug: string };
+
+// Openings come live from Allium: pages refresh in the background every few
+// minutes, and an opening published after the last deploy renders on first visit.
+export const revalidate = 300;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const jobs = await getAllJobs();
@@ -96,10 +101,7 @@ export default async function JobPostingPage({
         </div>
 
         <div className="mt-8 flex items-center gap-4 flex-wrap">
-          <FountainApplyButton
-            href={job.fountainApplyUrl}
-            label={t("Apply on Fountain", "Aplicar en Fountain")}
-          />
+          <ApplyButton href={jobApplyUrl(job, locale)} label={t("Apply now", "Solicitar ahora")} />
           <Link
             href="/careers"
             className="text-[14px] font-semibold text-text-secondary hover:text-brand-green"
@@ -112,7 +114,19 @@ export default async function JobPostingPage({
       <section className="marketing-container pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           <article className="mdx-prose lg:col-span-8 max-w-[720px]">
-            <MDXRemote source={job.body} components={{ InlineImage }} />
+            {jobParagraphs(job, locale).map((p, i) => (
+              <p key={i} className="whitespace-pre-line">{p}</p>
+            ))}
+            {job.facts.length > 0 && (
+              <>
+                <h2>{t("Pay and schedule", "Pago y horario")}</h2>
+                <ul lang="en">
+                  {job.facts.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </article>
 
           <aside className="lg:col-span-4">
@@ -140,9 +154,9 @@ export default async function JobPostingPage({
                   />
                 </dl>
                 <div className="mt-5">
-                  <FountainApplyButton
-                    href={job.fountainApplyUrl}
-                    label={t("Apply on Fountain", "Aplicar en Fountain")}
+                  <ApplyButton
+                    href={jobApplyUrl(job, locale)}
+                    label={t("Apply now", "Solicitar ahora")}
                     className="w-full"
                   />
                 </div>
@@ -208,8 +222,8 @@ function formatMoney(value: number, currency: string, locale: Locale): string {
   }
 }
 
-function unitLabel(u: Job["baseSalary"]["unitText"], locale: Locale): string {
-  const map: Record<Job["baseSalary"]["unitText"], { en: string; es: string }> = {
+function unitLabel(u: NonNullable<Job["baseSalary"]>["unitText"], locale: Locale): string {
+  const map: Record<NonNullable<Job["baseSalary"]>["unitText"], { en: string; es: string }> = {
     HOUR: { en: "/ hour", es: "/ hora" },
     DAY: { en: "/ day", es: "/ día" },
     WEEK: { en: "/ week", es: "/ semana" },

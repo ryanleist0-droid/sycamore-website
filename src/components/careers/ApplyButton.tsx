@@ -1,15 +1,15 @@
 import { cn } from "@/lib/utils";
 
 /**
- * FountainApplyButton — hero-primary green CTA. Opens the role's Fountain
- * application URL in a new tab (`target="_blank" rel="noopener noreferrer"`).
+ * ApplyButton — hero-primary green CTA. Opens the role's application (Allium)
+ * in a new tab (`target="_blank" rel="noopener noreferrer"`).
  *
  * Addendum §4.9 specifies the new-tab affordance so the candidate doesn't
  * lose the role description while filling out the application.
  */
-export function FountainApplyButton({
+export function ApplyButton({
   href,
-  label = "Apply on Fountain",
+  label = "Apply now",
   size = "hero",
   className,
 }: {

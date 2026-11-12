@@ -13,6 +13,9 @@ import type { Locale } from "@/lib/jobs";
 
 type Params = { locale: string };
 
+// The open-roles list comes live from Allium (src/lib/jobs.ts); refresh it.
+export const revalidate = 300;
+
 export async function generateMetadata({
   params,
 }: {
